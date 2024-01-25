@@ -1,7 +1,7 @@
 {
-  "name": "mdmc-be",
+  "name": "sikarad-be",
   "version": "1.0.0",
-  "description": "backend MDMC rencana pakai nodeJS mas bro",
+  "description": "sikarad be",
   "main": "./app/index.js",
   "scripts": {
     "start": "nodemon ./app/index",
@@ -10,16 +10,8 @@
     "migrate": "npx sequelize-cli db:migrate",
     "build": "webpack"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cbadigitechno/MDMC-BE.git"
-  },
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/cbadigitechno/MDMC-BE/issues"
-  },
-  "homepage": "https://github.com/cbadigitechno/MDMC-BE#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
