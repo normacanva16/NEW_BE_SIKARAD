@@ -1,10 +1,8 @@
-// vercel.json
-
 {
    "version": 2,
    "builds": [
     {
-        "src": "./index.js",
+        "src": "./app/index.js",
         "use": "@vercel/node"
     }
    ],
