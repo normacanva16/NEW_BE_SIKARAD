@@ -2,9 +2,6 @@
   "name": "sikarad-be",
   "version": "1.0.0",
   "description": "sikarad be",
-  "engines": {
-    "node": "18.17.0"
-  },
   "main": "./index.js",
   "scripts": {
     "start": "node index.js"
