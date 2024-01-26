@@ -5,9 +5,9 @@
   "engines": {
     "node": "18.17.0"
   },
-  "main": "./app/index.js",
+  "main": "./index.js",
   "scripts": {
-    "start": "node ./app/index"
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC",
