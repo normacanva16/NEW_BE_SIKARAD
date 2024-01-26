@@ -9,8 +9,8 @@
   "routes": [
     { "handle": "filesystem" },
     {
-      "src": "/app/routes/(.*)",
-      "dest": "/app/routes/$1"
+      "src": "/routes/(.*)",
+      "dest": "/routes/$1"
     },
     {
       "src": "/(.*)",
