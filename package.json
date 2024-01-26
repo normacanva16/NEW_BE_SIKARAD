@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "sikarad be",
   "engines": {
-    "node": "20.x"
+    "node": "18.17.0"
   },
   "main": "./app/index.js",
   "scripts": {
