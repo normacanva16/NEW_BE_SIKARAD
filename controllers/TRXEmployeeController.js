@@ -207,6 +207,113 @@ exports.listByAksiId = (req, res) => {
     });
 };
 
+// exports.uploadfileexcel = async (req, res) => {
+//   try {
+//     const file = req.file;
+
+//     if (req.file == undefined) {
+//       return res.status(400).send('Please upload an excel file!');
+//     }
+
+//     const findAllEmployee = await DataEmployee.findAll();
+
+//     if (findAllEmployee.length > 0) {
+//       const organisaisQuery = `
+//       DELETE FROM trx_employee`;
+  
+//       await sequelize.query(organisaisQuery, {
+//         type: QueryTypes.DELETE,
+//       });
+//     }
+
+//     const sheetsToRead = [
+//       'KODAM I BB', 'KODAM II SWJ', 'KODAM III SLW', 'KODAM IV DIP', 'KODAM V BRW', 'KODAM VI MLW', 
+//       'KODAM IX UDY','KODAM XII TPR','KODAM XIII MDK', 'KODAM XIV HSN', 'KODAM XVI PTM',
+//       'KODAM XVII CEN','KODAM XVIII KSR','KODAM JAYA','KODAM IM', 'PUSSENIF', 'PUSSENKAV', 'PUSSENARMED', 'PUSSENARHANUD',
+//       'PUSZIAD', 'KOPASSUS','KOSTRAD','KODIKLATAD',
+//       'DISADAAD','DISLAIKAD','DISJARAHAD','DISJASAD','DISINFOLAHTAD','DISLITBANGAD',
+//       'DISPSIAD','DISBINTALAD','DISPENAD','DITKUMAD','DITKUAD','DITTOPAD',
+//       'DITAJENAD','RSPAD GS','PUSKESAD','PUSBEKANGAD','PUSPALAD','PUSHUBAD',
+//       'PUSPENERBAD','PUSINTELAD','PUSTERAD','PUSPOMAD','PUSSANSIAD','SECAPA AD',
+//       'SESKOAD','AKMIL','ITJENAD','MABESAD'
+//       ];
+//     let allSheetData = [];
+
+//     await Promise.all(
+//       sheetsToRead.map(async (sheetName) => {
+//         try {
+//           const workbook = XLSX.readFile(file.path); // Provide the correct path
+//           const sheet = workbook.Sheets[sheetName];
+//           const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    
+//           const colheaders = ['KODE JAB', 'NAMA', 'PANGKAT', 'KORPS', 'NRP', 'JABATAN', 'TMT JAB', 'ABIT', 'TINGKAT JAB', 'DAFUKAJ'];
+//           const indexheader = colheaders.map((header) => (rows[0] || []).indexOf(header));
+    
+//           // Skip header
+//           rows.shift();
+    
+//           rows.forEach((row) => {
+//             let formattedDate;
+//             if (row[indexheader[6]] != null && row[indexheader[6]] != '') {
+//               const timestamp = (parseInt(row[indexheader[6]]) - 25569) * 86400 * 1000;
+//               const dateObject = new Date(timestamp);
+//               formattedDate = dateObject.toLocaleDateString();
+//             }
+//             let datakorban = {
+//               kotama_balakpus: sheetName,
+//               code_kotama_balakpus: sheetsToRead.indexOf(sheetName)+1,
+//               kode_jabatan: row[indexheader[0]],
+//               nama: row[indexheader[1]],
+//               pangkat: row[indexheader[2]],
+//               korps: row[indexheader[3]],
+//               nrp: row[indexheader[4]],
+//               jabatan: row[indexheader[5]],
+//               tmt_jabatan: formattedDate,
+//               abit: row[indexheader[7]],
+//               tingkat_jabatan: row[indexheader[8]],
+//               dafukaj: row[indexheader[9]],
+//             };
+    
+//             allSheetData.push(datakorban);
+//           });
+//         } catch (error) {
+//           console.error(`Error reading sheet ${sheetName}: ${error.message}`);
+//         }
+//       })
+//     )
+
+//       DataEmployee.bulkCreate(allSheetData, {
+//         user: req.user,
+//         individualHooks: true,
+//       })
+//         .then(() => {
+//           res.status(200).send({
+//             message: 'Uploaded the file successfully: ' + req.file.originalname,
+//             fileKey: file.filename,
+//           });
+//         })
+//         .catch((error) => {
+//           res.status(500).send({
+//             message: 'Fail to import data into database!',
+//             error: error.message,
+//           });
+//         });
+    
+
+   
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send({
+//       message: 'Could not upload the file: ' + req.file.originalname,
+//     });
+//   }
+
+//   await unlinkFile(req.file.path);
+// };
+
+
+const timeoutDuration = 10800000; // 3 hours in milliseconds
+
 exports.uploadfileexcel = async (req, res) => {
   try {
     const file = req.file;
@@ -215,92 +322,99 @@ exports.uploadfileexcel = async (req, res) => {
       return res.status(400).send('Please upload an excel file!');
     }
 
-    const findAllEmployee = await DataEmployee.findAll();
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Timeout: File upload process exceeded 1 hour.'));
+      }, timeoutDuration);
+    });
 
-    if (findAllEmployee.length > 0) {
-      const organisaisQuery = `
-      DELETE FROM trx_employee`;
-  
-      await sequelize.query(organisaisQuery, {
-        type: QueryTypes.DELETE,
-      });
-    }
+    const fileUploadPromise = new Promise(async (resolve, reject) => {
+      try {
+        const findAllEmployee = await DataEmployee.findAll();
 
-    const sheetsToRead = [
-      'KODAM I BB', 'KODAM II SWJ', 'KODAM III SLW', 'KODAM IV DIP', 'KODAM V BRW', 'KODAM VI MLW', 
-      'KODAM IX UDY','KODAM XII TPR','KODAM XIII MDK', 'KODAM XIV HSN', 'KODAM XVI PTM',
-      'KODAM XVII CEN','KODAM XVIII KSR','KODAM JAYA','KODAM IM', 'PUSSENIF', 'PUSSENKAV', 'PUSSENARMED', 'PUSSENARHANUD',
-      'PUSZIAD', 'KOPASSUS','KOSTRAD','KODIKLATAD',
-      'DISADAAD','DISLAIKAD','DISJARAHAD','DISJASAD','DISINFOLAHTAD','DISLITBANGAD',
-      'DISPSIAD','DISBINTALAD','DISPENAD','DITKUMAD','DITKUAD','DITTOPAD',
-      'DITAJENAD','RSPAD GS','PUSKESAD','PUSBEKANGAD','PUSPALAD','PUSHUBAD',
-      'PUSPENERBAD','PUSINTELAD','PUSTERAD','PUSPOMAD','PUSSANSIAD','SECAPA AD',
-      'SESKOAD','AKMIL','ITJENAD','MABESAD'
-      ];
-    let allSheetData = [];
-
-    await Promise.all(
-      sheetsToRead.map(async (sheetName) => {
-        try {
-          const workbook = XLSX.readFile(file.path); // Provide the correct path
-          const sheet = workbook.Sheets[sheetName];
-          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-    
-          const colheaders = ['KODE JAB', 'NAMA', 'PANGKAT', 'KORPS', 'NRP', 'JABATAN', 'TMT JAB', 'ABIT', 'TINGKAT JAB', 'DAFUKAJ'];
-          const indexheader = colheaders.map((header) => (rows[0] || []).indexOf(header));
-    
-          // Skip header
-          rows.shift();
-    
-          rows.forEach((row) => {
-            let formattedDate;
-            if (row[indexheader[6]] != null && row[indexheader[6]] != '') {
-              const timestamp = (parseInt(row[indexheader[6]]) - 25569) * 86400 * 1000;
-              const dateObject = new Date(timestamp);
-              formattedDate = dateObject.toLocaleDateString();
-            }
-            let datakorban = {
-              kotama_balakpus: sheetName,
-              code_kotama_balakpus: sheetsToRead.indexOf(sheetName)+1,
-              kode_jabatan: row[indexheader[0]],
-              nama: row[indexheader[1]],
-              pangkat: row[indexheader[2]],
-              korps: row[indexheader[3]],
-              nrp: row[indexheader[4]],
-              jabatan: row[indexheader[5]],
-              tmt_jabatan: formattedDate,
-              abit: row[indexheader[7]],
-              tingkat_jabatan: row[indexheader[8]],
-              dafukaj: row[indexheader[9]],
-            };
-    
-            allSheetData.push(datakorban);
+        if (findAllEmployee.length > 0) {
+          const organisaisQuery = `
+            DELETE FROM trx_employee`;
+      
+          await sequelize.query(organisaisQuery, {
+            type: QueryTypes.DELETE,
           });
-        } catch (error) {
-          console.error(`Error reading sheet ${sheetName}: ${error.message}`);
         }
-      })
-    )
 
-      DataEmployee.bulkCreate(allSheetData, {
-        user: req.user,
-        individualHooks: true,
-      })
-        .then(() => {
-          res.status(200).send({
-            message: 'Uploaded the file successfully: ' + req.file.originalname,
-            fileKey: file.filename,
-          });
-        })
-        .catch((error) => {
-          res.status(500).send({
-            message: 'Fail to import data into database!',
-            error: error.message,
-          });
+        const sheetsToRead = [
+          'KODAM I BB', 'KODAM II SWJ', 'KODAM III SLW', 'KODAM IV DIP', 'KODAM V BRW', 'KODAM VI MLW', 
+          'KODAM IX UDY','KODAM XII TPR','KODAM XIII MDK', 'KODAM XIV HSN', 'KODAM XVI PTM',
+          'KODAM XVII CEN','KODAM XVIII KSR','KODAM JAYA','KODAM IM', 'PUSSENIF', 'PUSSENKAV', 'PUSSENARMED', 'PUSSENARHANUD',
+          'PUSZIAD', 'KOPASSUS','KOSTRAD','KODIKLATAD',
+          'DISADAAD','DISLAIKAD','DISJARAHAD','DISJASAD','DISINFOLAHTAD','DISLITBANGAD',
+          'DISPSIAD','DISBINTALAD','DISPENAD','DITKUMAD','DITKUAD','DITTOPAD',
+          'DITAJENAD','RSPAD GS','PUSKESAD','PUSBEKANGAD','PUSPALAD','PUSHUBAD',
+          'PUSPENERBAD','PUSINTELAD','PUSTERAD','PUSPOMAD','PUSSANSIAD','SECAPA AD',
+          'SESKOAD','AKMIL','ITJENAD','MABESAD'
+        ];
+        let allSheetData = [];
+
+        await Promise.all(
+          sheetsToRead.map(async (sheetName) => {
+            try {
+              const workbook = XLSX.readFile(file.path);
+              const sheet = workbook.Sheets[sheetName];
+              const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        
+              const colheaders = ['KODE JAB', 'NAMA', 'PANGKAT', 'KORPS', 'NRP', 'JABATAN', 'TMT JAB', 'ABIT', 'TINGKAT JAB', 'DAFUKAJ'];
+              const indexheader = colheaders.map((header) => (rows[0] || []).indexOf(header));
+        
+              // Skip header
+              rows.shift();
+        
+              rows.forEach((row) => {
+                let formattedDate;
+                if (row[indexheader[6]] != null && row[indexheader[6]] != '') {
+                  const timestamp = (parseInt(row[indexheader[6]]) - 25569) * 86400 * 1000;
+                  const dateObject = new Date(timestamp);
+                  formattedDate = dateObject.toLocaleDateString();
+                }
+                let datakorban = {
+                  kotama_balakpus: sheetName,
+                  code_kotama_balakpus: sheetsToRead.indexOf(sheetName)+1,
+                  kode_jabatan: row[indexheader[0]],
+                  nama: row[indexheader[1]],
+                  pangkat: row[indexheader[2]],
+                  korps: row[indexheader[3]],
+                  nrp: row[indexheader[4]],
+                  jabatan: row[indexheader[5]],
+                  tmt_jabatan: formattedDate,
+                  abit: row[indexheader[7]],
+                  tingkat_jabatan: row[indexheader[8]],
+                  dafukaj: row[indexheader[9]],
+                };
+        
+                allSheetData.push(datakorban);
+              });
+            } catch (error) {
+              console.error(`Error reading sheet ${sheetName}: ${error.message}`);
+            }
+          })
+        )
+
+        await DataEmployee.bulkCreate(allSheetData, {
+          user: req.user,
+          individualHooks: true,
         });
-    
 
-   
+        resolve({
+          message: 'Uploaded the file successfully: ' + req.file.originalname,
+          fileKey: file.filename,
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    // Use Promise.race to wait for either the file upload or timeout
+    const result = await Promise.race([timeoutPromise, fileUploadPromise]);
+
+    res.status(200).send(result);
   } catch (error) {
     console.log(error);
     res.status(500).send({
@@ -310,7 +424,6 @@ exports.uploadfileexcel = async (req, res) => {
 
   await unlinkFile(req.file.path);
 };
-
 
 exports.view = async (req, res) => {
   const { id } = req.params;
