@@ -110,7 +110,7 @@ exports.update = async (req, res) => {
     )
       .then((result) => {
         if (result == 0) {
-          return response.notFoundResponse(res, `Kotama with id ${id} not found`);
+          return response.notFoundResponse(res, `Kotama Balkpus with id ${id} not found`);
         } else {
           return response.successResponse(res, `success updated master kotama with id ${id}`);
         }
