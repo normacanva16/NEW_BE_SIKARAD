@@ -8,7 +8,7 @@
   ],
   "functions": {
     "src/**/*.js": {
-      "maxDuration": 10800000
+      "maxDuration": 300
     }
   },
   "routes": [
