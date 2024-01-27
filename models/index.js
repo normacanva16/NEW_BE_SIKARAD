@@ -6,6 +6,7 @@ const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require(path.join(__dirname, '../configs/database.js'));
+const pg = require('pg');
 const db = {};
 
 const applySearchQuery = require('../helpers/utilities/applySearchQuery');
@@ -15,6 +16,7 @@ let sequelize = new Sequelize(config.database, config.username, config.password,
   host: config.host,
   dialect: config.dialect,
   timezone: config.timezone,
+  dialectModule: pg,
   define: {
     schema: config.schema,
     migrationStorageTableSchema: config.migrationStorageTableSchema,
