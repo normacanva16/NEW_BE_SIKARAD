@@ -5,7 +5,7 @@ const path = require('path');
 const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
-const config = require(path.join(__dirname, '../configs/database.js'))[env];
+const config = require(path.join(__dirname, '../configs/database.js'));
 const db = {};
 
 const applySearchQuery = require('../helpers/utilities/applySearchQuery');
