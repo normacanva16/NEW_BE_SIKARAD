@@ -194,6 +194,7 @@ exports.listByAksiId = (req, res) => {
     limit,
     offset,
     where: where,
+    order: [['code_kotama_balakpus', 'ASC']],
   })
     .then((data) => {
       const payload = {

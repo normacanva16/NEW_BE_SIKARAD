@@ -77,7 +77,7 @@ exports.list = (req, res) => {
       where: {
         [Op.and]: searchWords,
       },
-      order: [['created_date', 'DESC']],
+      order: [['code', 'ASC']],
     })
       .then((data) => {
         const payload = {
@@ -128,12 +128,13 @@ exports.view = async (req, res) => {
 
   try {
     Kotama.findByPk(id)
-      .then((result) => {
+      .then(async(result) => {
         if (result != null) {
-          const findKotama = Kotama.findOne({
+          const findKotama = await Kotama.findOne({
             where: {
               id: result.id,
-            }
+            },
+            attributes: ['id', 'code', 'nama', 'alamat', 'latitude', 'longitude', 'url_gmaps'],
           })
           return response.successResponseWithData(res, 'success', findKotama);
         } else {
