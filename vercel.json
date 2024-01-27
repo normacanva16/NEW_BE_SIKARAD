@@ -2,42 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "index.js",
-      "use": "@vercel/node"
+        "src": "./index.js",
+        "use": "@vercel/node"
     }
-  ],
+],
   "routes": [
-    {
-      "src": "/configs/(.*)",
-      "dest": "/configs/$1"
-    },
-    {
-      "src": "/controllers/(.*)",
-      "dest": "/controllers/$1"
-    },
-    {
-      "src": "/routes/(.*)",
-      "dest": "/routes/$1"
-    },
-    {
-      "src": "/helpers/(.*)",
-      "dest": "/helpers/$1"
-    },
-    {
-      "src": "/migrations/(.*)",
-      "dest": "/migrations/$1"
-    },
-    {
-      "src": "/models/(.*)",
-      "dest": "/models/$1"
-    },
-    {
-      "src": "/uploads/(.*)",
-      "dest": "/uploads/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.js"
+    { 
+        "src": "/(.*)", 
+        "dest": "/"
     }
   ]
 }
