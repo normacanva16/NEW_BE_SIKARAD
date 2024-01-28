@@ -147,7 +147,7 @@ exports.listByAksiId = (req, res) => {
                 EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
                 EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) <= '1 tahun' THEN true
+          ) <= '1 tahun' and tmt_jabatan IS NOT NULL THEN true
           ELSE false
         END
       `);
@@ -162,14 +162,14 @@ exports.listByAksiId = (req, res) => {
                 EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
                 EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) > '1 tahun' AND COALESCE(
+          ) > '1 tahun' and tmt_jabatan IS NOT NULL AND COALESCE(
             (
               SELECT
                 EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
                 EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
                 EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) <= '2 tahun' THEN true
+          ) <= '2 tahun' and tmt_jabatan IS NOT NULL THEN true
           ELSE false
         END
       `);
@@ -184,7 +184,7 @@ exports.listByAksiId = (req, res) => {
                 EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
                 EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) > '2 tahun' THEN true
+          ) > '2 tahun' and tmt_jabatan IS NOT NULL THEN true
           ELSE false
         END
       `);
