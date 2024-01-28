@@ -706,3 +706,83 @@ exports.viewEmployeeByJabatan = (req, res) => {
       res.status(500).send({ message: err.message });
     });
 };
+
+exports.deleteEmployeeByFilter = async(req, res) => {
+
+  const code_kotama_balakpus = req.query.code_kotama_balakpus;
+  const masa_jabatan = req.query.masa_jabatan;
+  const pangkat = req.query.pangkat;
+
+
+  let where = {};
+
+  if (code_kotama_balakpus != null && code_kotama_balakpus != '') {
+    where['code_kotama_balakpus'] = code_kotama_balakpus;
+  }
+
+  
+  if (masa_jabatan != null && masa_jabatan != '') {
+    if (masa_jabatan === "kosong") {
+      where['tmt_jabatan'] = null;
+    } else if (masa_jabatan === "diatas0") {
+      // Set the condition for tenure between 0 and 1 year
+      where['tmt_jabatan'] = Sequelize.literal(`
+        CASE
+          WHEN current_date - tmt_jabatan <= interval '1 years' THEN true
+          ELSE false
+        END
+      `);
+    } else if (masa_jabatan === "dibawah2") {
+      // Set the condition for tenure between 1 and 2 years
+      where['tmt_jabatan'] = Sequelize.literal(`
+        CASE
+          WHEN current_date - tmt_jabatan > interval '1 years' AND current_date - tmt_jabatan <= interval '2 years' THEN true
+          ELSE false
+        END
+      `);
+    } else if (masa_jabatan === "diatas2") {
+      // Set the condition for tenure exceeding 2 years
+      where['tmt_jabatan'] = Sequelize.literal(`
+        CASE
+          WHEN current_date - tmt_jabatan > interval '2 years' THEN true
+          ELSE false
+        END
+      `);
+    }
+  }
+  
+
+  if (pangkat != null && pangkat != '') {
+    where['pangkat'] = pangkat;
+  }
+
+  try{
+
+  const findAllEmployee = await DataEmployee.findAll({
+    where: where,
+    attributes:['id']
+  })
+
+  if (findAllEmployee.length < 1) {
+    return response.notFoundResponse(res, 'Data Pegawai Tidak Ditemukan');
+  }
+
+  const arrayOfIds = findAllEmployee.map(employee => employee.id);
+
+  const relawanQuery = `
+  DELETE FROM trx_employee
+  WHERE id IN (:arrayOfIds)
+`;
+
+await sequelize.query(relawanQuery, {
+  type: QueryTypes.DELETE,
+  replacements: { arrayOfIds },
+});
+
+    return response.successResponse(res, `success delete data pegawai`);
+    
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+  
+};
