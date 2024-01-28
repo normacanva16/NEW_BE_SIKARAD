@@ -103,6 +103,36 @@ exports.listByAksiId = (req, res) => {
   }
 
   
+  // if (masa_jabatan != null && masa_jabatan != '') {
+  //   if (masa_jabatan === "kosong") {
+  //     where['tmt_jabatan'] = null;
+  //   } else if (masa_jabatan === "diatas0") {
+  //     // Set the condition for tenure between 0 and 1 year
+  //     where['tmt_jabatan'] = Sequelize.literal(`
+  //       CASE
+  //         WHEN current_date - tmt_jabatan <= interval '1 years' THEN true
+  //         ELSE false
+  //       END
+  //     `);
+  //   } else if (masa_jabatan === "dibawah2") {
+  //     // Set the condition for tenure between 1 and 2 years
+  //     where['tmt_jabatan'] = Sequelize.literal(`
+  //       CASE
+  //         WHEN current_date - tmt_jabatan > interval '1 years' AND current_date - tmt_jabatan <= interval '2 years' THEN true
+  //         ELSE false
+  //       END
+  //     `);
+  //   } else if (masa_jabatan === "diatas2") {
+  //     // Set the condition for tenure exceeding 2 years
+  //     where['tmt_jabatan'] = Sequelize.literal(`
+  //       CASE
+  //         WHEN current_date - tmt_jabatan > interval '2 years' THEN true
+  //         ELSE false
+  //       END
+  //     `);
+  //   }
+  // }
+
   if (masa_jabatan != null && masa_jabatan != '') {
     if (masa_jabatan === "kosong") {
       where['tmt_jabatan'] = null;
@@ -110,7 +140,14 @@ exports.listByAksiId = (req, res) => {
       // Set the condition for tenure between 0 and 1 year
       where['tmt_jabatan'] = Sequelize.literal(`
         CASE
-          WHEN current_date - tmt_jabatan <= interval '1 years' THEN true
+          WHEN COALESCE(
+            (
+              SELECT
+                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+            ), '0 tahun 0 bulan 0 hari'
+          ) <= '1 tahun' THEN true
           ELSE false
         END
       `);
@@ -118,7 +155,21 @@ exports.listByAksiId = (req, res) => {
       // Set the condition for tenure between 1 and 2 years
       where['tmt_jabatan'] = Sequelize.literal(`
         CASE
-          WHEN current_date - tmt_jabatan > interval '1 years' AND current_date - tmt_jabatan <= interval '2 years' THEN true
+          WHEN COALESCE(
+            (
+              SELECT
+                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+            ), '0 tahun 0 bulan 0 hari'
+          ) > '1 tahun' AND COALESCE(
+            (
+              SELECT
+                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+            ), '0 tahun 0 bulan 0 hari'
+          ) <= '2 tahun' THEN true
           ELSE false
         END
       `);
@@ -126,12 +177,20 @@ exports.listByAksiId = (req, res) => {
       // Set the condition for tenure exceeding 2 years
       where['tmt_jabatan'] = Sequelize.literal(`
         CASE
-          WHEN current_date - tmt_jabatan > interval '2 years' THEN true
+          WHEN COALESCE(
+            (
+              SELECT
+                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+            ), '0 tahun 0 bulan 0 hari'
+          ) > '2 tahun' THEN true
           ELSE false
         END
       `);
     }
   }
+  
   
 
   if (pangkat != null && pangkat != '') {
