@@ -14,7 +14,7 @@ const authorize = require('../helpers/authorize');
 const router = Router();
 dotEnv.config();
 
-router.post('',upload.multerUploadFile,EmployeeController.uploadfileexcel);
+router.post('',upload.multerUploadFile,EmployeeController.uploadfileexcelByKotama);
 router.get('', EmployeeController.listByAksiId);
 router.get('/:id', EmployeeController.view);
 router.get('/download/excel', EmployeeController.exportListEmployee);
