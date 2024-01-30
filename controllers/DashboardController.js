@@ -296,19 +296,19 @@ order by code_kotama_balakpus ASC
     console.log(result)
 
     for (const a of result) {
-      jabkosong.push([a.kotama_balakpus, parseInt(a.jabatan_d)]);
+      jabkosong.push([parseInt(a.code_kotama_balakpus), parseInt(a.jabatan_d)]);
     }
 
     for (const a of result) {
-      jabdiatas0.push([a.kotama_balakpus, parseInt(a.jabatan_a)]);
+      jabdiatas0.push([parseInt(a.code_kotama_balakpus), parseInt(a.jabatan_a)]);
     }
 
     for (const a of result) {
-      jabdibawah2.push([a.kotama_balakpus, parseInt(a.jabatan_b)]);
+      jabdibawah2.push([parseInt(a.code_kotama_balakpus), parseInt(a.jabatan_b)]);
     }
 
     for (const a of result) {
-      jabdiatas2.push([a.kotama_balakpus, parseInt(a.jabatan_c)]);
+      jabdiatas2.push([parseInt(a.code_kotama_balakpus), parseInt(a.jabatan_c)]);
     }
 
     let payload = {
