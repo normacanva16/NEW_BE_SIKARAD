@@ -340,6 +340,8 @@ order by code_kotama_balakpus ASC
 
 exports.getRekapitulasiData = async (req, res) => {
   const pangkat = req.query.pangkat;
+  const limit = req.query.size ? parseInt(req.query.size) : 10;
+  const offset = req.query.page ? parseInt(req.query.page) : 1;
 
   const replacements = {};
   try {
@@ -434,8 +436,11 @@ order by code_kotama_balakpus ASC
       })
     }
 
+    const resultpaginate = paginate(arraydata, limit, offset);
+
     let payload = {
-      data: arraydata
+      data: resultpaginate,
+      total_data: result.length,
     };
 
     return res.status(200).json(payload);
@@ -443,5 +448,10 @@ order by code_kotama_balakpus ASC
     res.status(500).send({ message: error.message });
   }
 };
+
+function paginate(array, page_size, page_number) {
+  // human-readable page numbers usually start with 1, so we reduce 1 in the first argument
+  return array.slice((page_number - 1) * page_size, page_number * page_size);
+}
 
 
