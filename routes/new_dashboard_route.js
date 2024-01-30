@@ -9,5 +9,6 @@ const router = Router();
 dotEnv.config();
 
 router.get('/peta', NewDashboardController.getAllKotama);
+router.get('/diagram/rekapitulasi', NewDashboardController.getSummaryDateMappingPegawaiByKotama);
 
 module.exports = router;

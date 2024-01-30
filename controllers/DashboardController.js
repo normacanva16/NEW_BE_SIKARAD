@@ -210,3 +210,132 @@ const applyTypeFilter = (data, typeFilter) => {
 };
 
 
+exports.getSummaryDateMappingPegawaiByKotama = async (req, res) => {
+  const pangkat = req.query.pangkat;
+
+  const replacements = {};
+  try {
+    let baseQuery = `   
+    SELECT
+  kotama_balakpus,
+  code_kotama_balakpus,
+  SUM(CASE
+      WHEN tmt_jabatan IS NULL AND nrp IS NULL THEN 1
+      WHEN tmt_jabatan IS NULL THEN 1
+      WHEN COALESCE(
+            (
+              SELECT
+                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+            ), '0 tahun 0 bulan 0 hari'
+          ) <= '1 tahun' and tmt_jabatan IS NOT NULL THEN 1
+      ELSE 0
+  END) as jabatan_A,
+  SUM(CASE
+      WHEN COALESCE(
+            (
+              SELECT
+                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+            ), '0 tahun 0 bulan 0 hari'
+          ) > '1 tahun' and tmt_jabatan IS NOT NULL AND COALESCE(
+            (
+              SELECT
+                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+            ), '0 tahun 0 bulan 0 hari'
+          ) <= '2 tahun' and tmt_jabatan IS NOT NULL THEN 1
+      ELSE 0
+  END) as jabatan_B,
+  SUM(CASE
+      WHEN COALESCE(
+            (
+              SELECT
+                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+            ), '0 tahun 0 bulan 0 hari'
+          ) > '2 tahun' and tmt_jabatan IS NOT NULL THEN 1
+      ELSE 0
+  END) as jabatan_C,
+  SUM(CASE
+      WHEN tmt_jabatan IS NULL AND nrp IS NULL THEN 1
+      ELSE 0
+  END) as jabatan_D
+FROM trx_employee
+`;
+
+if (pangkat != null && pangkat != '') {
+
+  baseQuery += ` where pangkat ilike '%${pangkat}%'`
+  replacements['pangkat'] = pangkat;
+}
+
+baseQuery +=`
+GROUP BY kotama_balakpus, code_kotama_balakpus
+order by code_kotama_balakpus ASC
+ `;
+
+    const query = `${baseQuery}`;
+
+    const result = await sequelize.query(query, {
+      replacements: {
+        ...replacements,
+      },
+      type: QueryTypes.SELECT,
+    });
+
+    let jabkosong = [];
+    let jabdiatas0 = [];
+    let jabdibawah2 = [];
+    let jabdiatas2 = [];
+
+    console.log(result)
+
+    for (const a of result) {
+      jabkosong.push([a.kotama_balakpus, parseInt(a.jabatan_d)]);
+    }
+
+    for (const a of result) {
+      jabdiatas0.push([a.kotama_balakpus, parseInt(a.jabatan_a)]);
+    }
+
+    for (const a of result) {
+      jabdibawah2.push([a.kotama_balakpus, parseInt(a.jabatan_b)]);
+    }
+
+    for (const a of result) {
+      jabdiatas2.push([a.kotama_balakpus, parseInt(a.jabatan_c)]);
+    }
+
+    let payload = {
+      series: [
+        {
+          name: 'Jabatan Kosong',
+          data: jabkosong,
+        },
+        {
+          name: 'Jabatan 0 - 1 Tahun',
+          data: jabdiatas0,
+        },
+        {
+          name: 'Jabatan 1 - 2 Tahun',
+          data: jabdibawah2,
+        },
+        {
+          name: 'Jabatan > 2 Tahun',
+          data: jabdiatas2,
+        },
+      ],
+    };
+
+    return res.status(200).json(payload);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};
+
+
