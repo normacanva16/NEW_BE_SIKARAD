@@ -217,66 +217,67 @@ exports.getSummaryDateMappingPegawaiByKotama = async (req, res) => {
   try {
     let baseQuery = `   
     SELECT
-  kotama_balakpus,
-  code_kotama_balakpus,
-  SUM(CASE
-      WHEN tmt_jabatan IS NULL AND nrp IS NULL THEN 1
-      WHEN tmt_jabatan IS NULL THEN 1
+  mst_kotama.nama as kotama_balakpus,
+  mst_kotama.code as code_kotama_balakpus,
+  COALESCE(SUM(CASE
+      WHEN trx_employee.tmt_jabatan IS NULL AND trx_employee.nrp IS null and trx_employee.jabatan is not NULL THEN 1
+      WHEN trx_employee.tmt_jabatan IS null and trx_employee.jabatan is not NULL THEN 1
       WHEN COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) <= '1 tahun' and tmt_jabatan IS NOT NULL THEN 1
+          ) <= '1 tahun' and trx_employee.tmt_jabatan IS NOT null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_A,
-  SUM(CASE
+  END), 0) as jabatan_A,
+  COALESCE(SUM(CASE
       WHEN COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) > '1 tahun' and tmt_jabatan IS NOT NULL AND COALESCE(
+          ) > '1 tahun' and trx_employee.tmt_jabatan IS NOT NULL AND COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) <= '2 tahun' and tmt_jabatan IS NOT NULL THEN 1
+          ) <= '2 tahun' and trx_employee.tmt_jabatan IS NOT null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_B,
-  SUM(CASE
+  END), 0) as jabatan_B,
+  COALESCE(SUM(CASE
       WHEN COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) > '2 tahun' and tmt_jabatan IS NOT NULL THEN 1
+          ) > '2 tahun' and trx_employee.tmt_jabatan IS NOT null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_C,
-  SUM(CASE
-      WHEN tmt_jabatan IS NULL AND nrp IS NULL THEN 1
+  END), 0) as jabatan_C,
+  COALESCE(SUM(CASE
+      WHEN trx_employee.tmt_jabatan IS NULL AND trx_employee.nrp IS null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_D
-FROM trx_employee
+  END), 0) as jabatan_D
+FROM mst_kotama
+LEFT JOIN trx_employee ON mst_kotama.code = trx_employee.code_kotama_balakpus
 `;
 
 if (pangkat != null && pangkat != '') {
 
-  baseQuery += ` where pangkat ilike '%${pangkat}%'`
+  baseQuery += ` where trx_employee.pangkat ilike '%${pangkat}%'`
   replacements['pangkat'] = pangkat;
 }
 
 baseQuery +=`
-GROUP BY kotama_balakpus, code_kotama_balakpus
-order by code_kotama_balakpus ASC
+GROUP BY mst_kotama.nama, mst_kotama.code
+ORDER BY mst_kotama.code ASC;
  `;
 
     const query = `${baseQuery}`;
@@ -347,66 +348,67 @@ exports.getRekapitulasiData = async (req, res) => {
   try {
     let baseQuery = `   
     SELECT
-  kotama_balakpus,
-  code_kotama_balakpus,
-  SUM(CASE
-      WHEN tmt_jabatan IS NULL AND nrp IS NULL THEN 1
-      WHEN tmt_jabatan IS NULL THEN 1
+  mst_kotama.nama as kotama_balakpus,
+  mst_kotama.code as code_kotama_balakpus,
+  COALESCE(SUM(CASE
+      WHEN trx_employee.tmt_jabatan IS NULL AND trx_employee.nrp IS null and trx_employee.jabatan is not NULL THEN 1
+      WHEN trx_employee.tmt_jabatan IS null and trx_employee.jabatan is not NULL THEN 1
       WHEN COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) <= '1 tahun' and tmt_jabatan IS NOT NULL THEN 1
+          ) <= '1 tahun' and trx_employee.tmt_jabatan IS NOT null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_A,
-  SUM(CASE
+  END), 0) as jabatan_A,
+  COALESCE(SUM(CASE
       WHEN COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) > '1 tahun' and tmt_jabatan IS NOT NULL AND COALESCE(
+          ) > '1 tahun' and trx_employee.tmt_jabatan IS NOT NULL AND COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) <= '2 tahun' and tmt_jabatan IS NOT NULL THEN 1
+          ) <= '2 tahun' and trx_employee.tmt_jabatan IS NOT null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_B,
-  SUM(CASE
+  END), 0) as jabatan_B,
+  COALESCE(SUM(CASE
       WHEN COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) > '2 tahun' and tmt_jabatan IS NOT NULL THEN 1
+          ) > '2 tahun' and trx_employee.tmt_jabatan IS NOT null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_C,
-  SUM(CASE
-      WHEN tmt_jabatan IS NULL AND nrp IS NULL THEN 1
+  END), 0) as jabatan_C,
+  COALESCE(SUM(CASE
+      WHEN trx_employee.tmt_jabatan IS NULL AND trx_employee.nrp IS null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_D
-FROM trx_employee
+  END), 0) as jabatan_D
+FROM mst_kotama
+LEFT JOIN trx_employee ON mst_kotama.code = trx_employee.code_kotama_balakpus
 `;
 
 if (pangkat != null && pangkat != '') {
 
-  baseQuery += ` where pangkat ilike '%${pangkat}%'`
+  baseQuery += ` where trx_employee.pangkat ilike '%${pangkat}%'`
   replacements['pangkat'] = pangkat;
 }
 
 baseQuery +=`
-GROUP BY kotama_balakpus, code_kotama_balakpus
-order by code_kotama_balakpus ASC
+GROUP BY mst_kotama.nama, mst_kotama.code
+ORDER BY mst_kotama.code ASC;
  `;
 
     const query = `${baseQuery}`;
@@ -461,66 +463,67 @@ exports.getRekapitulasiDataAll = async (req, res) => {
   try {
     let baseQuery = `   
     SELECT
-  kotama_balakpus,
-  code_kotama_balakpus,
-  SUM(CASE
-      WHEN tmt_jabatan IS NULL AND nrp IS NULL THEN 1
-      WHEN tmt_jabatan IS NULL THEN 1
+  mst_kotama.nama as kotama_balakpus,
+  mst_kotama.code as code_kotama_balakpus,
+  COALESCE(SUM(CASE
+      WHEN trx_employee.tmt_jabatan IS NULL AND trx_employee.nrp IS null and trx_employee.jabatan is not NULL THEN 1
+      WHEN trx_employee.tmt_jabatan IS null and trx_employee.jabatan is not NULL THEN 1
       WHEN COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) <= '1 tahun' and tmt_jabatan IS NOT NULL THEN 1
+          ) <= '1 tahun' and trx_employee.tmt_jabatan IS NOT null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_A,
-  SUM(CASE
+  END), 0) as jabatan_A,
+  COALESCE(SUM(CASE
       WHEN COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) > '1 tahun' and tmt_jabatan IS NOT NULL AND COALESCE(
+          ) > '1 tahun' and trx_employee.tmt_jabatan IS NOT NULL AND COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) <= '2 tahun' and tmt_jabatan IS NOT NULL THEN 1
+          ) <= '2 tahun' and trx_employee.tmt_jabatan IS NOT null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_B,
-  SUM(CASE
+  END), 0) as jabatan_B,
+  COALESCE(SUM(CASE
       WHEN COALESCE(
             (
               SELECT
-                EXTRACT(YEAR FROM age(current_date, tmt_jabatan)) || ' tahun ' ||
-                EXTRACT(MONTH FROM age(current_date, tmt_jabatan)) || ' bulan ' ||
-                EXTRACT(DAY FROM age(current_date, tmt_jabatan)) || ' hari'
+                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
             ), '0 tahun 0 bulan 0 hari'
-          ) > '2 tahun' and tmt_jabatan IS NOT NULL THEN 1
+          ) > '2 tahun' and trx_employee.tmt_jabatan IS NOT null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_C,
-  SUM(CASE
-      WHEN tmt_jabatan IS NULL AND nrp IS NULL THEN 1
+  END), 0) as jabatan_C,
+  COALESCE(SUM(CASE
+      WHEN trx_employee.tmt_jabatan IS NULL AND trx_employee.nrp IS null and trx_employee.jabatan is not NULL THEN 1
       ELSE 0
-  END) as jabatan_D
-FROM trx_employee
+  END), 0) as jabatan_D
+FROM mst_kotama
+LEFT JOIN trx_employee ON mst_kotama.code = trx_employee.code_kotama_balakpus
 `;
 
 if (pangkat != null && pangkat != '') {
 
-  baseQuery += ` where pangkat ilike '%${pangkat}%'`
+  baseQuery += ` where trx_employee.pangkat ilike '%${pangkat}%'`
   replacements['pangkat'] = pangkat;
 }
 
 baseQuery +=`
-GROUP BY kotama_balakpus, code_kotama_balakpus
-order by code_kotama_balakpus ASC
+GROUP BY mst_kotama.nama, mst_kotama.code
+ORDER BY mst_kotama.code ASC;
  `;
 
     const query = `${baseQuery}`;
@@ -545,7 +548,7 @@ order by code_kotama_balakpus ASC
           "Jabatan Kosong : " + result[i].jabatan_d,
           "Jabatan 0-1 Tahun : " + result[i].jabatan_a,
           "Jabatan 1-2 Tahun : " + result[i].jabatan_b,
-          "Jabatan lebih 2 Tahun : " + result[i].jabatan_c
+          "Jabatan > 2 Tahun : " + result[i].jabatan_c
         ]
       })
     }
