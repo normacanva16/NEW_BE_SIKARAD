@@ -946,17 +946,17 @@ await sequelize.query(relawanQuery, {
 exports.listIsExistEmployee = async (req, res) => {
   const rawQuery = `
   SELECT 
-  mst_kotama.code,
-  CASE 
-      WHEN MAX(CASE WHEN trx_employee.code_kotama_balakpus IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN 'true'
-      ELSE 'false'
-  END AS is_exist
+    mst_kotama.code,mst_kotama.nama,
+    CASE 
+        WHEN MAX(CASE WHEN trx_employee.code_kotama_balakpus IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN 'true'
+        ELSE 'false'
+    END AS is_exist
 FROM 
-  mst_kotama
+    mst_kotama
 LEFT JOIN 
-  trx_employee ON mst_kotama.code = trx_employee.code_kotama_balakpus
+    trx_employee ON mst_kotama.code = trx_employee.code_kotama_balakpus
 GROUP BY 
-  mst_kotama.code
+    mst_kotama.code, mst_kotama.nama
 order by mst_kotama.code ASC
 
   `;
@@ -968,7 +968,7 @@ order by mst_kotama.code ASC
 
     for (const a of result) {
       payload.push({
-        text: a.code,
+        text: a.nama,
         value: a.is_exist,
       });
     }
