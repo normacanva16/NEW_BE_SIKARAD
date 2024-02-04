@@ -20,5 +20,6 @@ router.get('/:id', EmployeeController.view);
 router.get('/download/excel', EmployeeController.exportListEmployee);
 router.get('/detail/list', EmployeeController.viewEmployeeByJabatan);
 router.delete('', EmployeeController.deleteEmployeeByFilter);
+router.get('/list/employee/exist', EmployeeController.listIsExistEmployee);
 
 module.exports = router;
