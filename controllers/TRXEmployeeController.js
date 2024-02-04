@@ -30,6 +30,7 @@ exports.listByAksiId = (req, res) => {
   const code_kotama_balakpus = req.query.code_kotama_balakpus;
   const masa_jabatan = req.query.masa_jabatan;
   const pangkat = req.query.pangkat;
+  const korps = req.query.korps;
 
   let search = req.query.search;
   let searchWords = [];
@@ -194,7 +195,15 @@ exports.listByAksiId = (req, res) => {
   
 
   if (pangkat != null && pangkat != '') {
-    where['pangkat'] = pangkat;
+    where['pangkat'] = {
+      [Op.iLike]: `%${pangkat}%`,
+    };
+  }
+
+  if (korps != null && korps != '') {
+    where['korps'] = {
+      [Op.iLike]: `%${korps}%`,
+    };
   }
 
   DataEmployee.findAndCountAll({
@@ -644,6 +653,7 @@ exports.exportListEmployee = (req, res) => {
   const code_kotama_balakpus = req.query.code_kotama_balakpus;
   const masa_jabatan = req.query.masa_jabatan;
   const pangkat = req.query.pangkat;
+  const korps = req.query.korps;
 
 
   let where = {};
@@ -685,7 +695,15 @@ exports.exportListEmployee = (req, res) => {
   
 
   if (pangkat != null && pangkat != '') {
-    where['pangkat'] = pangkat;
+    where['pangkat'] = {
+      [Op.iLike]: `%${pangkat}%`,
+    };
+  }
+
+  if (korps != null && korps != '') {
+    where['korps'] = {
+      [Op.iLike]: `%${korps}%`,
+    };
   }
 
   DataEmployee.findAndCountAll({
@@ -868,6 +886,7 @@ exports.deleteEmployeeByFilter = async(req, res) => {
   const code_kotama_balakpus = req.query.code_kotama_balakpus;
   const masa_jabatan = req.query.masa_jabatan;
   const pangkat = req.query.pangkat;
+  const korps = req.query.korps;
 
 
   let where = {};
@@ -909,7 +928,15 @@ exports.deleteEmployeeByFilter = async(req, res) => {
   
 
   if (pangkat != null && pangkat != '') {
-    where['pangkat'] = pangkat;
+    where['pangkat'] = {
+      [Op.iLike]: `%${pangkat}%`,
+    };
+  }
+
+  if (korps != null && korps != '') {
+    where['korps'] = {
+      [Op.iLike]: `%${korps}%`,
+    };
   }
 
   try{
