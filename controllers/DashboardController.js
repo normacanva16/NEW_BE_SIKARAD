@@ -184,6 +184,7 @@ const calculateResults = (kotamaData, employeeData) => {
       type: itemData1.type,
       nama: itemData1.nama,
       code: itemData1.code,
+      url_image: "../../../../public/img/kotama/"+itemData1.code+".png",
       alamat: itemData1.alamat,
       latitude: itemData1.latitude,
       longitude: itemData1.longitude,
