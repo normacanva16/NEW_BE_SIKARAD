@@ -183,6 +183,7 @@ const calculateResults = (kotamaData, employeeData) => {
       id: itemData1.id,
       type: itemData1.type,
       nama: itemData1.nama,
+      code: itemData1.code,
       alamat: itemData1.alamat,
       latitude: itemData1.latitude,
       longitude: itemData1.longitude,
