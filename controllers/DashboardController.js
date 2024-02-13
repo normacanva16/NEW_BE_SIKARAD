@@ -569,3 +569,90 @@ ORDER BY mst_kotama.code ASC;
 };
 
 
+exports.getNotificationPeta = async (req, res) => {
+
+  try {
+    let baseQuery = `   
+    SELECT 
+    mst_kotama.id, 
+    mst_kotama.nama, 
+    mst_kotama.code, 
+    mst_kotama.latitude, 
+    mst_kotama.longitude,
+    COUNT(trx_employee.id) AS jumlah_employee,
+    CASE
+        WHEN COALESCE(
+                (
+                    SELECT
+                        EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                        EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                        EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
+                ), '0 tahun 0 bulan 0 hari'
+            ) > '1 tahun 5 bulan' THEN 'Jab_Kadaluarsa'
+        WHEN trx_employee.tmt_jabatan IS NULL AND (trx_employee.nrp IS NULL OR trx_employee.nrp = '') AND (trx_employee.nama IS NULL OR trx_employee.nama = '') and trx_employee.jabatan is not NULL THEN 'Jab_Kosong'
+        ELSE NULL
+    END AS group_name
+FROM 
+    mst_kotama
+LEFT JOIN 
+    trx_employee ON mst_kotama.code = trx_employee.code_kotama_balakpus
+WHERE 
+    COALESCE(
+        (
+          SELECT
+            EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+            EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+            EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
+        ), '0 tahun 0 bulan 0 hari'
+    ) > '1 tahun 5 bulan'
+    OR (trx_employee.tmt_jabatan IS NULL AND (trx_employee.nrp IS NULL OR trx_employee.nrp = '') AND trx_employee.jabatan IS NOT NULL)
+GROUP BY 
+    mst_kotama.id, 
+    mst_kotama.nama, 
+    mst_kotama.code, 
+    mst_kotama.latitude, 
+    mst_kotama.longitude,
+    group_name;
+
+`;
+
+    const query = `${baseQuery}`;
+
+    const result = await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+    });
+
+    let jabkosong = [];
+    let jablebih15 = [];
+
+    for (const a of result) {
+      if (a.group_name === "Jab_Kosong") {
+      jabkosong.push(a);
+      }
+    }
+
+    for (const a of result) {
+      if (a.group_name === "Jab_Kadaluarsa") {
+      jablebih15.push(a);
+      }
+    }
+
+    let payload = {
+      data: [
+        {
+          name: 'Jabatan Kosong',
+          data: jabkosong,
+        },
+        {
+          name: 'Jabatan lebih dari 1,5 tahun',
+          data: jablebih15,
+        },
+      ],
+    };
+
+    return res.status(200).json(payload);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};
+

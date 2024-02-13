@@ -12,4 +12,5 @@ router.get('/peta', NewDashboardController.getAllKotama);
 router.get('/diagram/rekapitulasi', NewDashboardController.getSummaryDateMappingPegawaiByKotama);
 router.get('/tabel/rekapitulasi', NewDashboardController.getRekapitulasiData);
 router.get('/tabel/rekapitulasi/download', NewDashboardController.getRekapitulasiDataAll);
+router.get('/peta/notification', NewDashboardController.getNotificationPeta);
 module.exports = router;
