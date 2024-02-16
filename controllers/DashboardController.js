@@ -299,19 +299,19 @@ ORDER BY mst_kotama.code ASC;
     console.log(result)
 
     for (const a of result) {
-      jabkosong.push([parseInt(a.code_kotama_balakpus), parseInt(a.jabatan_d)]);
+      jabkosong.push([parseInt(a.kotama_balakpus), parseInt(a.jabatan_d)]);
     }
 
     for (const a of result) {
-      jabdiatas0.push([parseInt(a.code_kotama_balakpus), parseInt(a.jabatan_a)]);
+      jabdiatas0.push([parseInt(a.kotama_balakpus), parseInt(a.jabatan_a)]);
     }
 
     for (const a of result) {
-      jabdibawah2.push([parseInt(a.code_kotama_balakpus), parseInt(a.jabatan_b)]);
+      jabdibawah2.push([parseInt(a.kotama_balakpus), parseInt(a.jabatan_b)]);
     }
 
     for (const a of result) {
-      jabdiatas2.push([parseInt(a.code_kotama_balakpus), parseInt(a.jabatan_c)]);
+      jabdiatas2.push([parseInt(a.kotama_balakpus), parseInt(a.jabatan_c)]);
     }
 
     let payload = {
@@ -633,6 +633,108 @@ GROUP BY
 
     for (const a of result) {
       if (a.group_name === "Jab_Kadaluarsa") {
+      jablebih15.push(a);
+      }
+    }
+
+    let payload = {
+      data: [
+        {
+          name: 'Jabatan Kosong',
+          data: jabkosong,
+        },
+        {
+          name: 'Jabatan lebih dari 1,5 tahun',
+          data: jablebih15,
+        },
+      ],
+    };
+
+    return res.status(200).json(payload);
+  } catch (error) {
+    res.status(500).send({ message: error.message });
+  }
+};
+
+exports.getDetailEmployeeByKotamaPeta = async (req, res) => {
+  const code = req.params.code;
+
+  try {
+    let baseQuery = `   
+    SELECT 
+    subquery.masa_jabatan,
+    subquery.masa_jabatan_group, 
+    subquery.mst_kotama_id, 
+    subquery.mst_kotama_code, 
+    subquery.mst_kotama_nama AS kotama_nama, 
+    subquery.pangkat, 
+    subquery.employee_nama, 
+    subquery.korps, 
+    subquery.nrp, 
+    subquery.jabatan, 
+    subquery.tmt_jabatan
+FROM (
+    SELECT 
+        trx_employee.id as employee_id,
+        trx_employee.code_kotama_balakpus as code_kotama_balakpus,
+        trx_employee.kode_jabatan as kode_jabatan,
+        trx_employee.nama as employee_nama,
+        trx_employee.pangkat as pangkat,
+        trx_employee.korps as korps,
+        trx_employee.nrp as nrp,
+        trx_employee.jabatan as jabatan,
+        COALESCE(TO_CHAR(trx_employee.tmt_jabatan, 'DD Mon YYYY'), '') as tmt_jabatan,
+        mst_kotama.id AS mst_kotama_id, 
+        mst_kotama.code AS mst_kotama_code, 
+        mst_kotama.nama AS mst_kotama_nama, 
+        COALESCE(
+            (
+                SELECT
+                    EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                    EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                    EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
+            ), '0 tahun 0 bulan 0 hari'
+        ) AS masa_jabatan,
+        CASE 
+            WHEN trx_employee.tmt_jabatan IS NULL AND (trx_employee.nrp IS NULL OR trx_employee.nrp = '') AND (trx_employee.nama IS NULL OR trx_employee.nama = '') AND trx_employee.jabatan IS NOT NULL THEN 'Jab_Kosong'
+            WHEN COALESCE(
+                        (
+                            SELECT
+                                EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+                                EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+                                EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
+                        ), '0 tahun 0 bulan 0 hari'
+                    ) > '1 tahun 5 bulan' THEN 'Jab_Kadaluarsa'
+        END AS masa_jabatan_group
+    FROM 
+        trx_employee 
+    LEFT JOIN 
+        mst_kotama ON trx_employee.code_kotama_balakpus = mst_kotama.code
+    WHERE
+        mst_kotama.code = '${code}'
+) AS subquery
+WHERE
+    subquery.masa_jabatan_group = 'Jab_Kosong' OR subquery.masa_jabatan_group = 'Jab_Kadaluarsa';
+
+`;
+
+    const query = `${baseQuery}`;
+
+    const result = await sequelize.query(query, {
+      type: QueryTypes.SELECT,
+    });
+
+    let jabkosong = [];
+    let jablebih15 = [];
+
+    for (const a of result) {
+      if (a.masa_jabatan_group === "Jab_Kosong") {
+      jabkosong.push(a);
+      }
+    }
+
+    for (const a of result) {
+      if (a.masa_jabatan_group === "Jab_Kadaluarsa") {
       jablebih15.push(a);
       }
     }

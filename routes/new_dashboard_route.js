@@ -13,4 +13,5 @@ router.get('/diagram/rekapitulasi', NewDashboardController.getSummaryDateMapping
 router.get('/tabel/rekapitulasi', NewDashboardController.getRekapitulasiData);
 router.get('/tabel/rekapitulasi/download', NewDashboardController.getRekapitulasiDataAll);
 router.get('/peta/notification', NewDashboardController.getNotificationPeta);
+router.get('/peta/detail-employee/:code', NewDashboardController.getDetailEmployeeByKotamaPeta);
 module.exports = router;
