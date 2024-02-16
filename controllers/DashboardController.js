@@ -296,22 +296,20 @@ ORDER BY mst_kotama.code ASC;
     let jabdibawah2 = [];
     let jabdiatas2 = [];
 
-    console.log(result)
-
     for (const a of result) {
-      jabkosong.push([parseInt(a.kotama_balakpus), parseInt(a.jabatan_d)]);
+      jabkosong.push([a.kotama_balakpus, parseInt(a.jabatan_d)]);
     }
 
     for (const a of result) {
-      jabdiatas0.push([parseInt(a.kotama_balakpus), parseInt(a.jabatan_a)]);
+      jabdiatas0.push([a.kotama_balakpus, parseInt(a.jabatan_a)]);
     }
 
     for (const a of result) {
-      jabdibawah2.push([parseInt(a.kotama_balakpus), parseInt(a.jabatan_b)]);
+      jabdibawah2.push([a.kotama_balakpus, parseInt(a.jabatan_b)]);
     }
 
     for (const a of result) {
-      jabdiatas2.push([parseInt(a.kotama_balakpus), parseInt(a.jabatan_c)]);
+      jabdiatas2.push([a.kotama_balakpus, parseInt(a.jabatan_c)]);
     }
 
     let payload = {
@@ -421,8 +419,6 @@ ORDER BY mst_kotama.code ASC;
       },
       type: QueryTypes.SELECT,
     });
-
-    console.log(result)
 
     let arraydata = []
 
@@ -536,8 +532,6 @@ ORDER BY mst_kotama.code ASC;
       },
       type: QueryTypes.SELECT,
     });
-
-    console.log(result)
 
     let arraydata = []
 
@@ -758,3 +752,4 @@ WHERE
   }
 };
 
+ 
