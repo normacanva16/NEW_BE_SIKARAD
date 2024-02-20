@@ -53,30 +53,32 @@ exports.list = (req, res) => {
   let search = req.query.search;
   let searchWords = [];
 
-  if (search == null) {
-    search = '';
-  } else {
-    const words = search.toLowerCase().split(' ');
-    words.forEach((word) => {
-      searchWords.push({
-        [Op.or]: [
-          {
-            nama: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-        ],
-      });
-    });
-  }
+  // if (search == null) {
+  //   search = '';
+  // } else {
+  //   const words = search.toLowerCase().split(' ');
+  //   words.forEach((word) => {
+  //     searchWords.push({
+  //       [Op.or]: [
+  //         {
+  //           nama: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //       ],
+  //     });
+  //   });
+  // }
 
   try {
     Kotama.findAndCountAll({
       limit,
       offset,
-      where: {
-        [Op.and]: searchWords,
-      },
+      search,
+      searchFields: ['nama', 'alamat', 'url_gmaps'],
+      // where: {
+      //   [Op.and]: searchWords,
+      // },
       order: [['code', 'ASC']],
     })
       .then((data) => {

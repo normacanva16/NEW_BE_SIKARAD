@@ -33,71 +33,71 @@ exports.listByAksiId = (req, res) => {
   const korps = req.query.korps;
 
   let search = req.query.search;
-  let searchWords = [];
+  // let searchWords = [];
 
-  if (search == null) {
-    search = '';
-  } else {
-    const words = search.toLowerCase().split(' ');
-    words.forEach((word) => {
-      searchWords.push({
-        [Op.or]: [
-          {
-            kotama_balakpus: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-          {
-            kode_jabatan: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-          {
-            nama: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-          {
-            pangkat: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-          {
-            korps: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-          {
-            nrp: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-          {
-            jabatan: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-          {
-            abit: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-          {
-            tingkat_jabatan: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-          {
-            dafukaj: {
-              [Op.like]: `%${word}%`,
-            },
-          },
-        ],
-      });
-    });
-  }
+  // if (search == null) {
+  //   search = '';
+  // } else {
+  //   const words = search.toLowerCase().split(' ');
+  //   words.forEach((word) => {
+  //     searchWords.push({
+  //       [Op.or]: [
+  //         {
+  //           kotama_balakpus: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //         {
+  //           kode_jabatan: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //         {
+  //           nama: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //         {
+  //           pangkat: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //         {
+  //           korps: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //         {
+  //           nrp: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //         {
+  //           jabatan: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //         {
+  //           abit: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //         {
+  //           tingkat_jabatan: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //         {
+  //           dafukaj: {
+  //             [Op.like]: `%${word}%`,
+  //           },
+  //         },
+  //       ],
+  //     });
+  //   });
+  // }
 
-  let where = {[Op.and]: searchWords };
+  let where = {};
 
   if (code_kotama_balakpus != null && code_kotama_balakpus != '') {
     where['code_kotama_balakpus'] = code_kotama_balakpus;
@@ -262,6 +262,8 @@ exports.listByAksiId = (req, res) => {
     ],
     limit,
     offset,
+    search,
+    searchFields: ['kotama_balakpus', 'pangkat', 'korps', 'nrp', 'jabatan', 'tmt_jabatan', 'nama', 'abit', 'dafukaj', 'tingkat_jabatan'],
     where: where,
     order: [['code_kotama_balakpus', 'ASC']],
   })
