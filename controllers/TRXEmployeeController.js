@@ -32,7 +32,7 @@ exports.listByAksiId = (req, res) => {
   const pangkat = req.query.pangkat;
   const korps = req.query.korps;
 
-  let search = req.query.search;
+  let search = req.query.search.toLowerCase();
   // let searchWords = [];
 
   // if (search == null) {

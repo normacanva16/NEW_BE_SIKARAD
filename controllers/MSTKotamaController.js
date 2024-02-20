@@ -50,7 +50,7 @@ exports.create = async (req, res) => {
 exports.list = (req, res) => {
   const limit = req.query.size ? parseInt(req.query.size) : 10;
   const offset = req.query.page ? (parseInt(req.query.page) - 1) * limit : 0;
-  let search = req.query.search;
+  let search = req.query.search.toLowerCase();
   let searchWords = [];
 
   // if (search == null) {

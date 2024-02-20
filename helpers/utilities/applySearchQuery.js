@@ -21,12 +21,12 @@ module.exports = (model, options) => {
         if (attr) {
           if (attr.type.key !== STRING.key) {
             return sequelize.where(sequelize.cast(sequelize.col(`${model.options.name.singular}.${attr.field}`), 'varchar'), {
-              [Op.like]: `%${options.search}%`,
+              [Op.iLike]: `%${options.search}%`,
             });
           }
         }
 
-        return { [key]: { [Op.like]: `%${options.search}%` } };
+        return { [key]: { [Op.iLike]: `%${options.search}%` } };
       });
 
     // eslint-disable-next-line no-param-reassign
