@@ -75,7 +75,7 @@ exports.list = (req, res) => {
       limit,
       offset,
       search,
-      searchFields: ['nama', 'alamat', 'url_gmaps'],
+      searchFields: ['nama'],
       // where: {
       //   [Op.and]: searchWords,
       // },
