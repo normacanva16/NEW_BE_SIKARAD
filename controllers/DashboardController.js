@@ -399,17 +399,16 @@ exports.getRekapitulasiData = async (req, res) => {
   END), 0) as jabatan_D
 FROM mst_kotama
 LEFT JOIN trx_employee ON mst_kotama.code = trx_employee.code_kotama_balakpus
+where 1 = 1
 `;
 
 if (pangkat != null && pangkat != '') {
-
-  baseQuery += ` where trx_employee.pangkat ilike '%${pangkat}%'`
+  baseQuery += ` and trx_employee.pangkat ilike '%${pangkat}%'`
   replacements['pangkat'] = pangkat;
 }
 
 if (search != null && search != '') {
-
-  baseQuery += ` where mst_kotama.nama ilike '%${search}%'`
+  baseQuery += ` and mst_kotama.nama ilike '%${search}%'`
   replacements['search'] = search;
 }
 
