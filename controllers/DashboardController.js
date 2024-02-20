@@ -343,6 +343,7 @@ exports.getRekapitulasiData = async (req, res) => {
   const pangkat = req.query.pangkat;
   const limit = req.query.size ? parseInt(req.query.size) : 10;
   const offset = req.query.page ? parseInt(req.query.page) : 1;
+  const search = req.query.search;
 
   const replacements = {};
   try {
@@ -404,6 +405,12 @@ if (pangkat != null && pangkat != '') {
 
   baseQuery += ` where trx_employee.pangkat ilike '%${pangkat}%'`
   replacements['pangkat'] = pangkat;
+}
+
+if (search != null && search != '') {
+
+  baseQuery += ` where mst_kotama.nama ilike '%${search}%'`
+  replacements['search'] = search;
 }
 
 baseQuery +=`
