@@ -764,6 +764,7 @@ exports.getListImageKotama = async (req, res) => {
   const codefind = req.query.code;
 
   const imageFolderPath = path.join('/tmp');
+  console.log("pathimage",imageFolderPath)
   const imageCount = 51;
   let imageList = [];
 
