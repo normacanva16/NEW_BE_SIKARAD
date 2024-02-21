@@ -618,109 +618,38 @@ exports.listkotamabalakpus = async (req, res) => {
 };
 
 
-// exports.updateImageKotama = async (req, res) => {
-//     const codekotama = req.params.code;
-//     const imageFolderPath = path.join('/tmp');
-//     const file = req.file;
-
-//     // Pastikan file ter-upload
-//     if (!file) {
-//         return res.status(400).send('Please upload an image!');
-//     }
-
-//     // Cek apakah ada file dengan nama yang sama dengan codekotama
-//     const existingImageExtensions = ['.jpg', '.jpeg', '.png'];
-//     let existingImagePath = '';
-//     for (const ext of existingImageExtensions) {
-//         const imagePath = path.join(imageFolderPath, `${codekotama}${ext}`);
-//         if (fs.existsSync(imagePath)) {
-//             existingImagePath = imagePath;
-//             break;
-//         }
-//     }
-
-//     // Jika ada file dengan nama yang sama, hapus file tersebut
-//     if (existingImagePath) {
-//         fs.unlinkSync(existingImagePath);
-//     }
-
-//     // Simpan file baru dengan nama sesuai codekotama
-//     const newImageExtension = path.extname(file.originalname).toLowerCase(); // Dapatkan ekstensi file yang di-upload
-//     const newImagePath = path.join(imageFolderPath, `${codekotama}${newImageExtension}`);
-//     fs.writeFileSync(newImagePath, file.buffer); // Menulis file baru dari buffer yang di-upload
-
-//     // Respon sukses
-//     res.status(200).send('Image uploaded successfully!');
-// }
-
 exports.updateImageKotama = async (req, res) => {
-  const codekotama = req.params.code;
-  const imageFolderPath = path.join(__dirname,'../tmp');
-  const file = req.file;
+    const codekotama = req.params.code;
+    const imageFolderPath = path.join('/tmp');
+    const file = req.file;
 
-  // Pastikan file ter-upload
-  if (!file) {
-      return res.status(400).send('Please upload an image!');
-  }
+    // Pastikan file ter-upload
+    if (!file) {
+        return res.status(400).send('Please upload an image!');
+    }
 
-  // Cek apakah ada file dengan nama yang sama dengan codekotama
-  const existingImageExtensions = ['.jpg', '.jpeg', '.png'];
-  let existingImagePath = '';
-  // for (const ext of existingImageExtensions) {
-      const imagePath = path.join(imageFolderPath, `${codekotama}.png`);
-      console.log(imagePath)
-      if (fs.existsSync(imagePath)) {
-          existingImagePath = imagePath;
-          // break;
-      }
-  // }
+    // Cek apakah ada file dengan nama yang sama dengan codekotama
+    const existingImageExtensions = ['.jpg', '.jpeg', '.png'];
+    let existingImagePath = '';
+    for (const ext of existingImageExtensions) {
+        const imagePath = path.join(imageFolderPath, `${codekotama}${ext}`);
+        if (fs.existsSync(imagePath)) {
+            existingImagePath = imagePath;
+            break;
+        }
+    }
 
-  // Jika ada file dengan nama yang sama, hapus file tersebut
-  if (existingImagePath) {
-      fs.unlinkSync(existingImagePath);
-  }
+    // Jika ada file dengan nama yang sama, hapus file tersebut
+    if (existingImagePath) {
+        fs.unlinkSync(existingImagePath);
+    }
 
-  // Simpan file baru dengan nama sesuai codekotama
-  const newImageExtension = path.extname(file.originalname).toLowerCase(); // Dapatkan ekstensi file yang di-upload
-  const newImagePath = path.join(imageFolderPath, `${codekotama}${newImageExtension}`);
-  fs.writeFileSync(newImagePath, file.buffer); // Menulis file baru dari buffer yang di-upload
+    // Simpan file baru dengan nama sesuai codekotama
+    const newImageExtension = path.extname(file.originalname).toLowerCase(); // Dapatkan ekstensi file yang di-upload
+    const newImagePath = path.join(imageFolderPath, `${codekotama}${newImageExtension}`);
+    fs.writeFileSync(newImagePath, file.buffer); // Menulis file baru dari buffer yang di-upload
 
-  // Respon sukses
-  res.status(200).send('Image uploaded successfully!');
+    // Respon sukses
+    res.status(200).send('Image uploaded successfully!');
 }
 
-exports.uploadImageKotama = async (req, res) => {
-  const codekotama = req.params.code;
-  const imageFolderPath = path.join('/tmp');
-  const file = req.file;
-
-  // Pastikan file ter-upload
-  if (!file) {
-      return res.status(400).send('Please upload an image!');
-  }
-
-  // Cek apakah ada file dengan nama yang sama dengan codekotama
-  const existingImageExtensions = ['.jpg', '.jpeg', '.png'];
-  let existingImagePath = '';
-  for (const ext of existingImageExtensions) {
-      const imagePath = path.join(imageFolderPath, `${codekotama}${ext}`);
-      console.log(imagePath)
-      if (fs.existsSync(imagePath)) {
-          existingImagePath = imagePath;
-          // break;
-      }
-  }
-
-  // Jika ada file dengan nama yang sama, hapus file tersebut
-  // if (existingImagePath) {
-  //     fs.unlinkSync(existingImagePath);
-  // }
-
-  // Simpan file baru dengan nama sesuai codekotama
-  const newImageExtension = path.extname(file.originalname).toLowerCase(); // Dapatkan ekstensi file yang di-upload
-  const newImagePath = path.join(imageFolderPath, `${codekotama}${newImageExtension}`);
-  fs.writeFileSync(newImagePath, file.buffer); // Menulis file baru dari buffer yang di-upload
-
-  // Respon sukses
-  res.status(200).send('Image uploaded successfully!');
-}

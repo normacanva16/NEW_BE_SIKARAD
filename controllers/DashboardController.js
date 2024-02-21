@@ -823,32 +823,5 @@ function getCodeFromFileName(fileName) {
 }
 
 
-// exports.getListImageKotama = async (req, res) => {
-//   const imageFolderPath = path.join(__dirname,'../tmp');
-//   const imageCount = 51;
-//   let imageList = [];
-
-//   try{
-//   for (let i = 1; i <= imageCount; i++) {
-//     const code = i;
-//     const imagePath = path.join(imageFolderPath, `${i}.png`); // Menggunakan nilai i langsung
-//     console.log(imagePath)
-//     try {
-//       const imageBase64 = await convertToBase64(imagePath);
-//       imageList.push({ code, imageBase64 });
-//     } catch (error) {
-//       console.error('Error reading file:', error);
-//       imageList.push({ code, imageBase64: null });
-//     }
-//   }
-
-//       res.json({ images: imageList });
-//   } catch (error) {
-//       console.error('Error:', error);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// }
-
-
 
  
