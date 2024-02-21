@@ -60,7 +60,7 @@ exports.getAllKotama = async (req, res) => {
 const getKotamaData = async () => {
   try {
     return await MasterKotamaBalakpus.findAll({
-      attributes: ['id','code', 'nama', 'alamat', 'latitude', 'longitude', 'url_gmaps'],
+      attributes: ['id','code', 'nama', 'alamat', 'latitude', 'longitude', 'url_gmaps','image'],
       where: {
         latitude: { [Op.not]: null },
         longitude: { [Op.not]: null },
@@ -190,6 +190,7 @@ const calculateResults = (kotamaData, employeeData) => {
       latitude: itemData1.latitude,
       longitude: itemData1.longitude,
       url_gmaps: itemData1.url_gmaps,
+      image: itemData1.image,
       // count: matchingElements.length,
       jab_kosong: totalJabKosong.length,
       jabdiatas1: jabdiatas1.length,
@@ -759,69 +760,23 @@ WHERE
   }
 };
 
-
 exports.getListImageKotama = async (req, res) => {
-  const codefind = req.query.code;
-
-  const imageFolderPath = path.join('/tmp');
-  console.log("pathimage",imageFolderPath)
-  const imageCount = 51;
-  let imageList = [];
-
   try {
-      // Membaca isi folder
-      const files = fs.readdirSync(imageFolderPath);
-      console.log("file",files)
-      
-      // Filter hanya file gambar yang diterima (misalnya JPEG atau PNG)
-      const imageFiles = files.filter(file => {
-          const extension = path.extname(file).toLowerCase();
-          return extension === '.jpg' || extension === '.jpeg' || extension === '.png';
-      });
 
-      console.log(imageFiles)
-
-      // Ambil sejumlah imageCount gambar
-      for (let i = 0; i < imageCount && i < imageFiles.length; i++) {
-          const imagePath = path.join(imageFolderPath, imageFiles[i]);
-          const code = getCodeFromFileName(imageFiles[i]);
-          const imageBase64 = await convertToBase64(imagePath);
-          imageList.push({ code, imageBase64: imageBase64 });
+    const findAllKotama = await MasterKotamaBalakpus.findAll({
+      attributes: ['code', 'image'],
+      where: {
+        deleted_date: null
       }
+    })
 
-      // Jika codefind memiliki nilai, filter imageList berdasarkan codefind
-      if (codefind) {
-          imageList = imageList.filter(image => image.code === parseInt(codefind));
-      }
-
-      // Mengirimkan array base64 ke client
-      res.json({ images: imageList });
+    return response.successResponseWithData(res, 'success', findAllKotama);
+    
   } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).send({ message: error.message });
   }
-}
 
-// Fungsi untuk mengonversi gambar menjadi base64
-function convertToBase64(imagePath) {
-  return new Promise((resolve, reject) => {
-      fs.readFile(imagePath, (error, data) => {
-          if (error) {
-              reject(error);
-          } else {
-              const base64Image = Buffer.from(data).toString('base64');
-              resolve(base64Image);
-          }
-      });
-  });
 }
-
-// Fungsi untuk mendapatkan kode dari nama file gambar
-function getCodeFromFileName(fileName) {
-  const match = fileName.match(/(\d+)/);
-  return match ? parseInt(match[0]) : null;
-}
-
 
 
  

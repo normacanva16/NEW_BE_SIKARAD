@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       latitude: DataTypes.FLOAT,
       longitude: DataTypes.FLOAT,
       url_gmaps: DataTypes.STRING,
-      url_image: DataTypes.STRING,
+      image: DataTypes.TEXT,
     },
     {
       sequelize,

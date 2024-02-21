@@ -43,23 +43,12 @@ var storage = multer.diskStorage({
   },
 });
 
-var storageImage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null,path.join('/tmp'));
-  },
-  filename: (req, file, cb) => {
-    const code = req.params.code; // Mengambil code dari req.params
-    const extension = file.originalname.split('.').pop();
-    cb(null, `${code}${extension}`); // Menggunakan code dalam penamaan file
-  },
-});
-
 var maxSize = 10000000;
 var maxSizesurattugas = 1 * 1000 * 1000;
 
 // var uploadFile = multer({ storage: storage, fileFilter: excelFilter });
 exports.multerUploadFile = multer({ storage, fileFilter: excelFilter }).single('file');
-exports.multerUploadImage = multer({ storageImage, fileFilter: imageFilter }).single('image');
+exports.multerUploadImage = multer({ storage, fileFilter: imageFilter }).single('image');
 exports.multerUploadFilePDF = multer({ storage, fileFilter: docFilter, limits: { fileSize: maxSizesurattugas } }).single('file');
 
 exports.multerUploadFileDataAksi = multer({ storage, limits: { fileSize: maxSize } }).single('file');

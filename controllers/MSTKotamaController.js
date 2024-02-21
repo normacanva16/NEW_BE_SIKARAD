@@ -6,6 +6,8 @@ const response = require('../helpers/apiResponse');
 const Sequelize = require('sequelize');
 const fs = require('fs');
 const path = require('path');
+const util = require('util');
+const unlinkFile = util.promisify(fs.unlink);
 
 // MODEL
 
@@ -78,6 +80,7 @@ exports.list = (req, res) => {
       offset,
       search,
       searchFields: ['nama'],
+      attributes: ['id','code', 'nama', 'alamat', 'latitude', 'longitude'],
       // where: {
       //   [Op.and]: searchWords,
       // },
@@ -101,12 +104,19 @@ exports.list = (req, res) => {
 exports.update = async (req, res) => {
   const { nama, alamat, latitude, longitude, url_gmaps } = req.body;
   const { id } = req.params;
+  const file = req.file;
 
   try {
 
+    if (!file) {
+      return res.status(400).send('Please upload an image!');
+    }
+
+    const image = fs.readFileSync(file.path, { encoding: 'base64' });
+
     Kotama.update(
       {
-        nama, alamat, latitude, longitude, url_gmaps
+        nama, alamat, latitude, longitude, url_gmaps, image: image
       },
       {
         where: { id: id },
@@ -125,6 +135,7 @@ exports.update = async (req, res) => {
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
+  await unlinkFile(req.file.path);
 };
 
 exports.view = async (req, res) => {
@@ -138,7 +149,7 @@ exports.view = async (req, res) => {
             where: {
               id: result.id,
             },
-            attributes: ['id', 'code', 'nama', 'alamat', 'latitude', 'longitude', 'url_gmaps'],
+            attributes: ['id', 'code', 'nama', 'alamat', 'latitude', 'longitude', 'url_gmaps', 'image'],
           })
           return response.successResponseWithData(res, 'success', findKotama);
         } else {
@@ -618,73 +629,74 @@ exports.listkotamabalakpus = async (req, res) => {
 };
 
 
-exports.updateImageKotama = async (req, res) => {
-    const codekotama = req.params.code;
-    const imageFolderPath = path.join('/tmp');
-    const file = req.file;
+exports.updateImageKotamaAuto = async (req, res) => {
+  const codefind = req.query.code;
 
-    // Pastikan file ter-upload
-    if (!file) {
-        return res.status(400).send('Please upload an image!');
-    }
+  const imageFolderPath = path.join(__dirname,'../tmp');
+  console.log("pathimage",imageFolderPath)
+  const imageCount = 51;
+  let imageList = [];
 
-    // Cek apakah ada file dengan nama yang sama dengan codekotama
-    const existingImageExtensions = ['.jpg', '.jpeg', '.png'];
-    let existingImagePath = '';
-    for (const ext of existingImageExtensions) {
-        const imagePath = path.join(imageFolderPath, `${codekotama}${ext}`);
-        if (fs.existsSync(imagePath)) {
-            existingImagePath = imagePath;
-            break;
-        }
-    }
+  try {
+      // Membaca isi folder
+      const files = fs.readdirSync(imageFolderPath);
+      console.log("file",files)
+      
+      // Filter hanya file gambar yang diterima (misalnya JPEG atau PNG)
+      const imageFiles = files.filter(file => {
+          const extension = path.extname(file).toLowerCase();
+          return extension === '.jpg' || extension === '.jpeg' || extension === '.png';
+      });
 
-    // Jika ada file dengan nama yang sama, hapus file tersebut
-    if (existingImagePath) {
-        fs.unlinkSync(existingImagePath);
-    }
+      console.log(imageFiles)
 
-    // Simpan file baru dengan nama sesuai codekotama
-    const newImageExtension = path.extname(file.originalname).toLowerCase(); // Dapatkan ekstensi file yang di-upload
-    const newImagePath = path.join(imageFolderPath, `${codekotama}${newImageExtension}`);
-    fs.writeFileSync(newImagePath, file.buffer); // Menulis file baru dari buffer yang di-upload
+      // Ambil sejumlah imageCount gambar
+      for (let i = 0; i < imageCount && i < imageFiles.length; i++) {
+          const imagePath = path.join(imageFolderPath, imageFiles[i]);
+          const code = getCodeFromFileName(imageFiles[i]);
+          const imageBase64 = await convertToBase64(imagePath);
+         
+          await Kotama.update({
+            image: imageBase64
+          },
+          {
+            where: {
+              code: code
+            }
+          });
+          imageList.push({ code, imageBase64: imageBase64 });
+      }
 
-    // Respon sukses
-    res.status(200).send('Image uploaded successfully!');
+      // Jika codefind memiliki nilai, filter imageList berdasarkan codefind
+      if (codefind) {
+          imageList = imageList.filter(image => image.code === parseInt(codefind));
+      }
+
+      // Mengirimkan array base64 ke client
+      res.json({ images: imageList });
+  } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
 }
 
-exports.uploadImageKotama = async (req, res) => {
-  const codekotama = req.params.code;
-  const imageFolderPath = path.join('/tmp');
-  const file = req.file;
+// Fungsi untuk mengonversi gambar menjadi base64
+function convertToBase64(imagePath) {
+  return new Promise((resolve, reject) => {
+      fs.readFile(imagePath, (error, data) => {
+          if (error) {
+              reject(error);
+          } else {
+              const base64Image = Buffer.from(data).toString('base64');
+              resolve(base64Image);
+          }
+      });
+  });
+}
 
-  // Pastikan file ter-upload
-  if (!file) {
-      return res.status(400).send('Please upload an image!');
-  }
-
-  // Cek apakah ada file dengan nama yang sama dengan codekotama
-  const existingImageExtensions = ['.jpg', '.jpeg', '.png'];
-  let existingImagePath = '';
-  for (const ext of existingImageExtensions) {
-      const imagePath = path.join(imageFolderPath, `${codekotama}${ext}`);
-      if (fs.existsSync(imagePath)) {
-          existingImagePath = imagePath;
-          break;
-      }
-  }
-
-  // Jika ada file dengan nama yang sama, hapus file tersebut
-  // if (existingImagePath) {
-  //     fs.unlinkSync(existingImagePath);
-  // }
-
-  // Simpan file baru dengan nama sesuai codekotama
-  const newImageExtension = path.extname(file.originalname).toLowerCase(); // Dapatkan ekstensi file yang di-upload
-  const newImagePath = path.join(imageFolderPath, `${codekotama}${newImageExtension}`);
-  fs.writeFileSync(newImagePath, file.buffer); // Menulis file baru dari buffer yang di-upload
-
-  // Respon sukses
-  res.status(200).send('Image uploaded successfully!');
+// Fungsi untuk mendapatkan kode dari nama file gambar
+function getCodeFromFileName(fileName) {
+  const match = fileName.match(/(\d+)/);
+  return match ? parseInt(match[0]) : null;
 }
 
