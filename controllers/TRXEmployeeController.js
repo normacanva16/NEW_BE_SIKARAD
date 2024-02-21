@@ -390,6 +390,8 @@ exports.uploadfileexcel = async (req, res) => {
   try {
     const file = req.file;
 
+    console.log("pathfile", req.file.path)
+
     if (req.file == undefined) {
       return res.status(400).send('Please upload an excel file!');
     }
