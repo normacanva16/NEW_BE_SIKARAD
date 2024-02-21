@@ -143,10 +143,9 @@ const calculateResults = (kotamaData, employeeData) => {
   kotamaData.forEach(itemData1 => {
     const matchingElements = employeeData.filter(itemData2 => itemData2.code_kotama_balakpus == itemData1.code);
     
-    const totalJabKosong = matchingElements.filter(itemData2 => (itemData2.nrp === null || itemData2.nrp === ""));
+    const totalJabKosong = matchingElements.filter(itemData2 => (itemData2.nrp === null || itemData2.nrp === ""|| itemData2.nama === null || itemData2.nama === ""));
     let jabdibawah1 = []
     let jabdiatas1 = []
-    let jabdiatas2 = []
     const totalJabatanIsi = matchingElements.map(itemData2 => {
       let indexTahun = itemData2.masa_jabatan.indexOf(" tahun");
       if (itemData2.nrp !== null && itemData2.nrp !== "" && indexTahun !== -1) {
@@ -170,12 +169,10 @@ const calculateResults = (kotamaData, employeeData) => {
             let stringBetweenBulanHari = itemData2.masa_jabatan.substring(indexBulan + 7, indexHari);
             days = parseInt(stringBetweenBulanHari);
         }
-        if (years === 0 || (years === 1  && months === 0 && days === 0)) {
+        if (years === 0 || (years === 1  && months < 5 ) || (years === 1  && months === 5 && days === 0 )) {
           jabdibawah1.push(itemData2.nrp)
-      } else if ((years === 1 && months >= 0 && days >= 1) ||  (years === 2  && months === 0 && days === 0)) {
+      } else if ((years >= 1 && months >= 5) ||  (years === 1  && months === 5 && days > 0)) {
         jabdiatas1.push(itemData2.nrp)
-      } else if ((years === 2  && months >= 0 && days >= 1) || (years > 2)) {
-        jabdiatas2.push(itemData2.nrp)
       }
       }
     });
@@ -194,8 +191,8 @@ const calculateResults = (kotamaData, employeeData) => {
       // count: matchingElements.length,
       jab_kosong: totalJabKosong.length,
       jabdiatas1: jabdiatas1.length,
-      jabdiatas2: jabdiatas2.length,
-      jabdibawah1: jabdibawah1.length
+      jabdibawah1: jabdibawah1.length,
+      totalPersonel: jabdiatas1.length + jabdibawah1.length
     });
   });
 
