@@ -14,4 +14,5 @@ router.get('/tabel/rekapitulasi', NewDashboardController.getRekapitulasiData);
 router.get('/tabel/rekapitulasi/download', NewDashboardController.getRekapitulasiDataAll);
 router.get('/peta/notification', NewDashboardController.getNotificationPeta);
 router.get('/peta/detail-employee/:code', NewDashboardController.getDetailEmployeeByKotamaPeta);
+router.get('/image', NewDashboardController.getListImageKotama);
 module.exports = router;

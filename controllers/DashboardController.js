@@ -1,5 +1,7 @@
 // Library
 const Sequelize = require('sequelize');
+const fs = require('fs');
+const path = require('path');
 
 // UTILS
 
@@ -184,7 +186,6 @@ const calculateResults = (kotamaData, employeeData) => {
       type: itemData1.type,
       nama: itemData1.nama,
       code: itemData1.code,
-      url_image: "../../../../public/img/kotama/"+itemData1.code+".png",
       alamat: itemData1.alamat,
       latitude: itemData1.latitude,
       longitude: itemData1.longitude,
@@ -757,5 +758,67 @@ WHERE
     res.status(500).send({ message: error.message });
   }
 };
+
+
+exports.getListImageKotama = async (req, res) => {
+  const codefind = req.query.code;
+
+  const imageFolderPath = path.join(__dirname, '../tmp');
+  console.log('Image Path:', imageFolderPath);
+  const imageCount = 51;
+  let imageList = [];
+
+  try {
+      // Membaca isi folder
+      const files = fs.readdirSync(imageFolderPath);
+      
+      // Filter hanya file gambar yang diterima (misalnya JPEG atau PNG)
+      const imageFiles = files.filter(file => {
+          const extension = path.extname(file).toLowerCase();
+          return extension === '.jpg' || extension === '.jpeg' || extension === '.png';
+      });
+
+      // Ambil sejumlah imageCount gambar
+      for (let i = 0; i < imageCount && i < imageFiles.length; i++) {
+          const imagePath = path.join(imageFolderPath, imageFiles[i]);
+          const code = getCodeFromFileName(imageFiles[i]);
+          const imageBase64 = await convertToBase64(imagePath);
+          imageList.push({ code, imageBase64: imageBase64 });
+      }
+
+      // Jika codefind memiliki nilai, filter imageList berdasarkan codefind
+      if (codefind) {
+          imageList = imageList.filter(image => image.code === parseInt(codefind));
+      }
+
+      // Mengirimkan array base64 ke client
+      res.json({ images: imageList });
+  } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+// Fungsi untuk mengonversi gambar menjadi base64
+function convertToBase64(imagePath) {
+  return new Promise((resolve, reject) => {
+      fs.readFile(imagePath, (error, data) => {
+          if (error) {
+              reject(error);
+          } else {
+              const base64Image = Buffer.from(data).toString('base64');
+              resolve(base64Image);
+          }
+      });
+  });
+}
+
+// Fungsi untuk mendapatkan kode dari nama file gambar
+function getCodeFromFileName(fileName) {
+  const match = fileName.match(/(\d+)/);
+  return match ? parseInt(match[0]) : null;
+}
+
+
 
  
