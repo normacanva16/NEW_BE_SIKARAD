@@ -15,15 +15,13 @@ const imageFilter = (req, file, cb) => {
     extension == 'png' ||
     extension == 'jpeg' ||
     extension == 'jpg' ||
-    extension == 'gif' ||
     file.mimetype === 'image/jpeg' ||
     file.mimetype === 'image/png' ||
-    file.mimetype === 'image/gif' ||
     file.mimetype === 'image/jpg'
   ) {
     cb(null, true);
   } else {
-    cb('Please upload only png / jpg / jpeg / gif file.', false);
+    cb('Please upload only png / jpg / jpeg file.', false);
   }
 };
 
@@ -45,12 +43,23 @@ var storage = multer.diskStorage({
   },
 });
 
+var storageImage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null,path.join('/tmp'));
+  },
+  filename: (req, file, cb) => {
+    const code = req.params.code; // Mengambil code dari req.params
+    const extension = file.originalname.split('.').pop();
+    cb(null, `${code}${extension}`); // Menggunakan code dalam penamaan file
+  },
+});
+
 var maxSize = 10000000;
 var maxSizesurattugas = 1 * 1000 * 1000;
 
 // var uploadFile = multer({ storage: storage, fileFilter: excelFilter });
 exports.multerUploadFile = multer({ storage, fileFilter: excelFilter }).single('file');
-exports.multerUploadImage = multer({ storage, fileFilter: imageFilter, limits: { fileSize: maxSize } }).single('image');
+exports.multerUploadImage = multer({ storageImage, fileFilter: imageFilter }).single('image');
 exports.multerUploadFilePDF = multer({ storage, fileFilter: docFilter, limits: { fileSize: maxSizesurattugas } }).single('file');
 
 exports.multerUploadFileDataAksi = multer({ storage, limits: { fileSize: maxSize } }).single('file');
