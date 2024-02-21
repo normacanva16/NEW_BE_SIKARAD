@@ -503,6 +503,7 @@ exports.uploadfileexcelByKotama = async (req, res) => {
 
   try {
     const file = req.file;
+    console.log("path",req.file.path)
 
     if (file === undefined) {
       return res.status(400).send('Please upload an excel file!');
@@ -564,8 +565,6 @@ exports.uploadfileexcelByKotama = async (req, res) => {
 
           allSheetData.push(datakorban);
         });
-
-        console.log(allSheetData);
 
         
       DataEmployee.bulkCreate(allSheetData, {
