@@ -763,7 +763,7 @@ WHERE
 exports.getListImageKotama = async (req, res) => {
   const codefind = req.query.code;
 
-  const imageFolderPath = path.join('/tmp/');
+  const imageFolderPath = path.join('/tmp');
   console.log("pathimage",imageFolderPath)
   const imageCount = 51;
   let imageList = [];
@@ -771,12 +771,15 @@ exports.getListImageKotama = async (req, res) => {
   try {
       // Membaca isi folder
       const files = fs.readdirSync(imageFolderPath);
+      console.log("file",files)
       
       // Filter hanya file gambar yang diterima (misalnya JPEG atau PNG)
       const imageFiles = files.filter(file => {
           const extension = path.extname(file).toLowerCase();
           return extension === '.jpg' || extension === '.jpeg' || extension === '.png';
       });
+
+      console.log(imageFiles)
 
       // Ambil sejumlah imageCount gambar
       for (let i = 0; i < imageCount && i < imageFiles.length; i++) {
