@@ -655,7 +655,7 @@ exports.listkotamabalakpus = async (req, res) => {
 
 exports.updateImageKotama = async (req, res) => {
   const codekotama = req.params.code;
-  const imageFolderPath = path.join('/tmp');
+  const imageFolderPath = path.join(__dirname,'../tmp');
   const file = req.file;
 
   // Pastikan file ter-upload
