@@ -22,5 +22,6 @@ router.put('/:id', validate(validateUpdateMasterKotama), KotamaController.update
 router.post('/auto-create', KotamaController.AutoCreate);
 router.get('/list/option', KotamaController.listkotamabalakpus);
 router.put('/image/:code', upload.multerUploadImage , KotamaController.updateImageKotama);
+router.post('/image/:code', upload.multerUploadImage , KotamaController.uploadImageKotama);
 
 module.exports = router;

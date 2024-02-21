@@ -760,47 +760,47 @@ WHERE
 };
 
 
-// exports.getListImageKotama = async (req, res) => {
-//   const codefind = req.query.code;
+exports.getListImageKotama = async (req, res) => {
+  const codefind = req.query.code;
 
-//   const imageFolderPath = path.join('/tmp');
-//   console.log("pathimage",imageFolderPath)
-//   const imageCount = 51;
-//   let imageList = [];
+  const imageFolderPath = path.join('/tmp');
+  console.log("pathimage",imageFolderPath)
+  const imageCount = 51;
+  let imageList = [];
 
-//   try {
-//       // Membaca isi folder
-//       const files = fs.readdirSync(imageFolderPath);
-//       console.log("file",files)
+  try {
+      // Membaca isi folder
+      const files = fs.readdirSync(imageFolderPath);
+      console.log("file",files)
       
-//       // Filter hanya file gambar yang diterima (misalnya JPEG atau PNG)
-//       const imageFiles = files.filter(file => {
-//           const extension = path.extname(file).toLowerCase();
-//           return extension === '.jpg' || extension === '.jpeg' || extension === '.png';
-//       });
+      // Filter hanya file gambar yang diterima (misalnya JPEG atau PNG)
+      const imageFiles = files.filter(file => {
+          const extension = path.extname(file).toLowerCase();
+          return extension === '.jpg' || extension === '.jpeg' || extension === '.png';
+      });
 
-//       console.log(imageFiles)
+      console.log(imageFiles)
 
-//       // Ambil sejumlah imageCount gambar
-//       for (let i = 0; i < imageCount && i < imageFiles.length; i++) {
-//           const imagePath = path.join(imageFolderPath, imageFiles[i]);
-//           const code = getCodeFromFileName(imageFiles[i]);
-//           const imageBase64 = await convertToBase64(imagePath);
-//           imageList.push({ code, imageBase64: imageBase64 });
-//       }
+      // Ambil sejumlah imageCount gambar
+      for (let i = 0; i < imageCount && i < imageFiles.length; i++) {
+          const imagePath = path.join(imageFolderPath, imageFiles[i]);
+          const code = getCodeFromFileName(imageFiles[i]);
+          const imageBase64 = await convertToBase64(imagePath);
+          imageList.push({ code, imageBase64: imageBase64 });
+      }
 
-//       // Jika codefind memiliki nilai, filter imageList berdasarkan codefind
-//       if (codefind) {
-//           imageList = imageList.filter(image => image.code === parseInt(codefind));
-//       }
+      // Jika codefind memiliki nilai, filter imageList berdasarkan codefind
+      if (codefind) {
+          imageList = imageList.filter(image => image.code === parseInt(codefind));
+      }
 
-//       // Mengirimkan array base64 ke client
-//       res.json({ images: imageList });
-//   } catch (error) {
-//       console.error('Error:', error);
-//       res.status(500).json({ error: 'Internal Server Error' });
-//   }
-// }
+      // Mengirimkan array base64 ke client
+      res.json({ images: imageList });
+  } catch (error) {
+      console.error('Error:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
 
 // Fungsi untuk mengonversi gambar menjadi base64
 function convertToBase64(imagePath) {
@@ -823,31 +823,31 @@ function getCodeFromFileName(fileName) {
 }
 
 
-exports.getListImageKotama = async (req, res) => {
-  const imageFolderPath = path.join(__dirname,'../tmp');
-  const imageCount = 51;
-  let imageList = [];
+// exports.getListImageKotama = async (req, res) => {
+//   const imageFolderPath = path.join(__dirname,'../tmp');
+//   const imageCount = 51;
+//   let imageList = [];
 
-  try{
-  for (let i = 1; i <= imageCount; i++) {
-    const code = i;
-    const imagePath = path.join(imageFolderPath, `${i}.png`); // Menggunakan nilai i langsung
-    console.log(imagePath)
-    try {
-      const imageBase64 = await convertToBase64(imagePath);
-      imageList.push({ code, imageBase64 });
-    } catch (error) {
-      console.error('Error reading file:', error);
-      imageList.push({ code, imageBase64: null });
-    }
-  }
+//   try{
+//   for (let i = 1; i <= imageCount; i++) {
+//     const code = i;
+//     const imagePath = path.join(imageFolderPath, `${i}.png`); // Menggunakan nilai i langsung
+//     console.log(imagePath)
+//     try {
+//       const imageBase64 = await convertToBase64(imagePath);
+//       imageList.push({ code, imageBase64 });
+//     } catch (error) {
+//       console.error('Error reading file:', error);
+//       imageList.push({ code, imageBase64: null });
+//     }
+//   }
 
-      res.json({ images: imageList });
-  } catch (error) {
-      console.error('Error:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
-  }
-}
+//       res.json({ images: imageList });
+//   } catch (error) {
+//       console.error('Error:', error);
+//       res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// }
 
 
 
