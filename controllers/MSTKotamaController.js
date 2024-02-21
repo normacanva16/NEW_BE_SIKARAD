@@ -108,10 +108,7 @@ exports.update = async (req, res) => {
 
   try {
 
-    if (!file) {
-      return res.status(400).send('Please upload an image!');
-    }
-
+    if (file) {
     const image = fs.readFileSync(file.path, { encoding: 'base64' });
 
     Kotama.update(
@@ -132,10 +129,31 @@ exports.update = async (req, res) => {
       .catch((err) => {
         res.status(500).send({ message: err.message });
       });
+      await unlinkFile(req.file.path);
+    } 
+    else {
+      Kotama.update(
+        {
+          nama, alamat, latitude, longitude, url_gmaps
+        },
+        {
+          where: { id: id },
+        },
+      )
+        .then((result) => {
+          if (result == 0) {
+            return response.notFoundResponse(res, `Kotama Balkpus with id ${id} not found`);
+          } else {
+            return response.successResponse(res, `success updated master kotama with id ${id}`);
+          }
+        })
+        .catch((err) => {
+          res.status(500).send({ message: err.message });
+        });
+    }
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
-  await unlinkFile(req.file.path);
 };
 
 exports.view = async (req, res) => {
