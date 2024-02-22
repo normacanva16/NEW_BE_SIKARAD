@@ -171,7 +171,7 @@ const calculateResults = (kotamaData, employeeData) => {
         }
         if (years === 0 || (years === 1  && months < 5 ) || (years === 1  && months === 5 && days === 0 )) {
           jabdibawah1.push(itemData2.nrp)
-      } else if ((years >= 1 && months > 5) ||  (years === 1  && months === 5 && days > 0)) {
+      } else if ((years >= 1) ||  (years === 1  && months === 5 && days > 0)) {
         jabdiatas1.push(itemData2.nrp)
       }
       }
