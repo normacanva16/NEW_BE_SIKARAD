@@ -569,7 +569,8 @@ ORDER BY mst_kotama.code ASC;
 
 
 exports.getNotificationPeta = async (req, res) => {
-
+  const search = req.query.search
+  const replacements = {};
   try {
     let baseQuery = `   
     SELECT 
@@ -596,15 +597,26 @@ FROM
 LEFT JOIN 
     trx_employee ON mst_kotama.code = trx_employee.code_kotama_balakpus
 WHERE 
-    COALESCE(
-        (
+(
+  COALESCE(
+      (
           SELECT
-            EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
-            EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
-            EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
-        ), '0 tahun 0 bulan 0 hari'
-    ) > '1 tahun 5 bulan'
-    OR (trx_employee.tmt_jabatan IS NULL AND (trx_employee.nrp IS NULL OR trx_employee.nrp = '') AND trx_employee.jabatan IS NOT NULL)
+              EXTRACT(YEAR FROM age(current_date, trx_employee.tmt_jabatan)) || ' tahun ' ||
+              EXTRACT(MONTH FROM age(current_date, trx_employee.tmt_jabatan)) || ' bulan ' ||
+              EXTRACT(DAY FROM age(current_date, trx_employee.tmt_jabatan)) || ' hari'
+      ), '0 tahun 0 bulan 0 hari'
+  ) > '1 tahun 5 bulan'
+  OR (trx_employee.tmt_jabatan IS NULL AND (trx_employee.nrp IS NULL OR trx_employee.nrp = '') AND trx_employee.jabatan IS NOT NULL)
+)
+`;
+
+if (search != null && search != '') {
+
+  baseQuery += ` AND mst_kotama.nama ilike '%${search}%'`
+  replacements['search'] = search;
+}
+
+baseQuery +=`
 GROUP BY 
     mst_kotama.id, 
     mst_kotama.nama, 
@@ -612,12 +624,14 @@ GROUP BY
     mst_kotama.latitude, 
     mst_kotama.longitude,
     group_name;
-
-`;
+ `;
 
     const query = `${baseQuery}`;
 
     const result = await sequelize.query(query, {
+      replacements: {
+        ...replacements,
+      },
       type: QueryTypes.SELECT,
     });
 
