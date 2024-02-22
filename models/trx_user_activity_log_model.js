@@ -1,0 +1,31 @@
+'use strict';
+const { Model } = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class trx_user_activity_log_model extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+    
+    }
+  }
+  trx_user_activity_log_model.init(
+    {
+      id: { allowNull: true, primaryKey: true, type: DataTypes.INTEGER },
+      email: DataTypes.STRING,
+      role: DataTypes.STRING,
+      activity_date: DataTypes.DATE,
+      activity: DataTypes.STRING,
+      ip_address: DataTypes.STRING
+    },
+    {
+      sequelize,
+      modelName: 'trx_user_activity_log_model',
+      tableName: 'trx_user_activity_log',
+    },
+  );
+  
+  return trx_user_activity_log_model;
+};
