@@ -43,7 +43,7 @@ module.exports.validateUpdateUser = [
     // .withMessage("fullname must be letters")
     .custom(async (value, { req }) => {
       const user = await User.findOne({
-        where: { fullname: value, [Op.not]: { id: Sequelize.literal(`id = f_decrypt('${req.params.id}')`) }, deleted_date: null },
+        where: { fullname: value, [Op.not]: { id: req.params.id}, deleted_date: null },
       });
       if (user) {
         return Promise.reject('fullname has been used');
@@ -56,7 +56,7 @@ module.exports.validateUpdateUser = [
         where: {
           email: value,
           deleted_date: null,
-          [Op.not]: { id: Sequelize.literal(`id = f_decrypt('${req.params.id}')`) },
+          [Op.not]: { id: req.params.id },
         },
       }).then((user) => {
         if (user) {
@@ -68,7 +68,7 @@ module.exports.validateUpdateUser = [
     return User.findOne({
       where: {
         username: value,
-        [Op.not]: { id: Sequelize.literal(`id = f_decrypt('${req.params.id}')`) },
+        [Op.not]: { id: req.params.id },
       },
     }).then((user) => {
       if (user) {
