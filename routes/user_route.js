@@ -19,5 +19,5 @@ router.get('/admin', UserController.listUser);
 router.delete('/:id', verifyToken, authorize.permit(['superadmin']), UserController.delete);
 router.put('/:id/admin', verifyToken, authorize.permit(['superadmin', 'admin', 'user']), validate(validateUpdateUser), UserController.updateUser);
 router.get('/:id/admin', UserController.viewUser);
-
+router.put('/:id/user/profile', verifyToken, authorize.permit(['superadmin', 'admin', 'user']), validate(validateUpdateUser), UserController.updateProfile);
 module.exports = router;

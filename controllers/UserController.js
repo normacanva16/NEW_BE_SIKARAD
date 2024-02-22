@@ -197,6 +197,7 @@ exports.updateUser = async (req, res) => {
         role_id: role_id,
         fullname,
         email,
+        phone_number,
         username,
         password: password != null && password != '' ? bcrypt.hashSync(password, 8) : respassid[0].password,
         is_active: is_active != null && is_active != '' ? is_active : 1
@@ -304,4 +305,54 @@ exports.login = async (req, res) => {
   } catch (err) {
     res.status(500).send({ message: err });
   }
+};
+
+exports.updateProfile = async (req, res) => {
+  const { fullname, phone_number, email, username, password } = req.body;
+  const { id } = req.params;
+
+  let respassid;
+  if (password == null || password === '') {
+    const passQuery = `
+    SELECT password FROM mst_users where id = '${id}' LIMIT 1`;
+
+    respassid = await sequelize.query(passQuery, {
+      type: QueryTypes.SELECT,
+    });
+  }
+
+    await User.update(
+      {
+        fullname,
+        email,
+        username,
+        phone_number,
+        password: password != null && password != '' ? bcrypt.hashSync(password, 8) : respassid[0].password,
+      },
+      {
+        where: { id: id },
+      },
+    )
+      .then((result) => {
+        if (result == 0) {
+          return response.notFoundResponse(res, `User with id ${id} not found`);
+        } else {
+          return response.successResponse(res, `success updated user with id ${id}`);
+        }
+      })
+      .catch((err) => {
+        res.status(500).send({ message: err.message });
+      });
+
+              // save log to database
+              await UserActivityLog.create({
+                email: req.user.email,
+                activity_date: new Date(),
+                activity: 'Update User Profile',
+                ip_address: req.ip
+              },{
+                user: req.user,
+                individualHooks: true,
+              })
+ 
 };
