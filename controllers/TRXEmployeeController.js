@@ -976,20 +976,23 @@ await sequelize.query(relawanQuery, {
 exports.listIsExistEmployee = async (req, res) => {
   const rawQuery = `
   SELECT 
-    mst_kotama.code,mst_kotama.nama,
-    CASE 
-        WHEN MAX(CASE WHEN trx_employee.code_kotama_balakpus IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN 'true'
-        ELSE 'false'
-    END AS is_exist
+  mst_kotama.code,
+  mst_kotama.nama,
+  CASE 
+      WHEN MAX(CASE WHEN trx_employee.code_kotama_balakpus IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN 'true'
+      ELSE 'false'
+  END AS is_exist,
+  COALESCE(TO_CHAR((SELECT MAX(updated_date) + INTERVAL '7 hours' FROM trx_employee WHERE code_kotama_balakpus = mst_kotama.code), 'DD Mon YYYY HH24:MI:SS'), '') AS last_updated_date
 FROM 
-    mst_kotama
+  mst_kotama
 LEFT JOIN 
-    trx_employee ON mst_kotama.code = trx_employee.code_kotama_balakpus
+  trx_employee ON mst_kotama.code = trx_employee.code_kotama_balakpus
 GROUP BY 
-    mst_kotama.code, mst_kotama.nama
-order by mst_kotama.code ASC
+  mst_kotama.code, mst_kotama.nama
+ORDER BY 
+  mst_kotama.code ASC;
 
-  `;
+  `; 
   try {
     const result = await sequelize.query(rawQuery, {
       type: QueryTypes.SELECT,
@@ -1000,6 +1003,7 @@ order by mst_kotama.code ASC
       payload.push({
         text: a.nama,
         value: a.is_exist,
+        last_updated_date: a.last_updated_date
       });
     }
     res.status(200).send(payload);
