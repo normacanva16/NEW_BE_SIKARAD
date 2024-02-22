@@ -982,7 +982,7 @@ exports.listIsExistEmployee = async (req, res) => {
       WHEN MAX(CASE WHEN trx_employee.code_kotama_balakpus IS NOT NULL THEN 1 ELSE 0 END) = 1 THEN 'true'
       ELSE 'false'
   END AS is_exist,
-  COALESCE(TO_CHAR((SELECT MAX(updated_date) + INTERVAL '-7 hours' FROM trx_employee WHERE code_kotama_balakpus = mst_kotama.code), 'DD Mon YYYY HH24:MI:SS'), '') AS last_updated_date
+  COALESCE(TO_CHAR((SELECT MAX(updated_date) FROM trx_employee WHERE code_kotama_balakpus = mst_kotama.code), 'DD Mon YYYY HH24:MI:SS'), '') AS last_updated_date
 FROM 
   mst_kotama
 LEFT JOIN 
