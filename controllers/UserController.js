@@ -53,7 +53,7 @@ exports.createUser = async (req, res) => {
         await UserActivityLog.create({
           email: req.user.email,
           activity_date: new Date(),
-          activity: 'Create User' + email,
+          activity: 'Create User ' + email,
           ip_address: req.ip
         },{
           user: req.user,
@@ -220,7 +220,7 @@ exports.updateUser = async (req, res) => {
               await UserActivityLog.create({
                 email: req.user.email,
                 activity_date: new Date(),
-                activity: 'Update data User' + email,
+                activity: 'Update data User ' + email,
                 ip_address: req.ip
               },{
                 user: req.user,

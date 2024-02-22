@@ -9,6 +9,7 @@ const mstkotamaRoute = require('../routes/mst_kotama_route');
 const userRoute = require('../routes/user_route');
 const TRXEmployeeRoute = require('../routes/trx_employee_route');
 const dashboardRoute = require('../routes/new_dashboard_route');
+const UserLogRoute = require('../routes/trx_activity_user_route');
 exports.start = (config) => {
   const app = express();
 
@@ -40,6 +41,7 @@ exports.start = (config) => {
   app.use('/dashboard', dashboardRoute);
   app.use('/employee', TRXEmployeeRoute);
   app.use('/dashboard', dashboardRoute);
+  app.use('/user-log', UserLogRoute);
 
 
   try {

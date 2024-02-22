@@ -589,7 +589,7 @@ exports.uploadfileexcelByKotama = async (req, res) => {
                    await UserActivityLog.create({
                     email: req.user.email,
                     activity_date: new Date(),
-                    activity: 'Upload File excel Data Personel Kotama/Balakpus' + findKotama.dataValues.nama,
+                    activity: 'Upload File excel Data Personel Kotama/Balakpus ' + findKotama.dataValues.nama,
                     ip_address: req.ip
                   },{
                     user: req.user,

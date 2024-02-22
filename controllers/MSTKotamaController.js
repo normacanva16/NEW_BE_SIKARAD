@@ -51,7 +51,7 @@ exports.create = async (req, res) => {
                  await UserActivityLog.create({
                   email: req.user.email,
                   activity_date: new Date(),
-                  activity: 'Create Master Kotama/Balakpus' + nama,
+                  activity: 'Create Master Kotama/Balakpus ' + nama,
                   ip_address: req.ip
                 },{
                   user: req.user,
@@ -167,7 +167,7 @@ exports.update = async (req, res) => {
             await UserActivityLog.create({
               email: req.user.email,
               activity_date: new Date(),
-              activity: 'Update Master Kotama/Balakpus' + nama,
+              activity: 'Update Master Kotama/Balakpus ' + nama,
               ip_address: req.ip
             },{
               user: req.user,
