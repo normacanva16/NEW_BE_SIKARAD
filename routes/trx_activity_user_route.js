@@ -7,5 +7,6 @@ const router = Router();
 dotEnv.config();
 
 router.get('', ActivityUserController.listUserActivityLog);
+router.get('/excel', ActivityUserController.exportListUserActivityLog);
 
 module.exports = router;
