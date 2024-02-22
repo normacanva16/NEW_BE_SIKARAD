@@ -13,11 +13,11 @@ const authorize = require('../helpers/authorize');
 const router = Router();
 dotEnv.config();
 
-router.post('/admin', validate(validateCreateUser), UserController.createUser);
+router.post('/admin', verifyToken, authorize.permit(['superadmin']), validate(validateCreateUser), UserController.createUser);
 router.post('/login', validate(validateLogin), UserController.login);
 router.get('/admin', UserController.listUser);
-router.delete('/:id', UserController.delete);
-router.put('/:id/admin', validate(validateUpdateUser), UserController.updateUser);
+router.delete('/:id', verifyToken, authorize.permit(['superadmin']), UserController.delete);
+router.put('/:id/admin', verifyToken, authorize.permit(['superadmin', 'admin', 'user']), validate(validateUpdateUser), UserController.updateUser);
 router.get('/:id/admin', UserController.viewUser);
 
 module.exports = router;

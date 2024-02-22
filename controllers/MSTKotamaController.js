@@ -15,7 +15,7 @@ const db = require('../models/index');
 const Op = db.Sequelize.Op;
 const sequelize = db.sequelize;
 const QueryTypes = db.Sequelize.QueryTypes;
-
+const UserActivityLog = db.trx_user_activity_log_model;
 const Kotama = db.mst_kotama_model;
 
 exports.create = async (req, res) => {
@@ -46,6 +46,18 @@ exports.create = async (req, res) => {
       .catch((err) => {
         res.status(500).send({ message: err.message });
       });
+
+                 // save log to database
+                 await UserActivityLog.create({
+                  email: req.user.email,
+                  activity_date: new Date(),
+                  activity: 'Create Master Kotama/Balakpus' + nama,
+                  ip_address: req.ip
+                },{
+                  user: req.user,
+                  individualHooks: true,
+                })
+
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
@@ -151,6 +163,17 @@ exports.update = async (req, res) => {
           res.status(500).send({ message: err.message });
         });
     }
+            // save log to database
+            await UserActivityLog.create({
+              email: req.user.email,
+              activity_date: new Date(),
+              activity: 'Update Master Kotama/Balakpus' + nama,
+              ip_address: req.ip
+            },{
+              user: req.user,
+              individualHooks: true,
+            })
+
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
@@ -617,6 +640,18 @@ exports.AutoCreate = async (req, res) => {
       .catch((err) => {
         res.status(500).send({ message: err.message });
       });
+
+                 // save log to database
+                 await UserActivityLog.create({
+                  email: req.user.email,
+                  activity_date: new Date(),
+                  activity: 'Auto create All Master Kotama',
+                  ip_address: req.ip
+                },{
+                  user: req.user,
+                  individualHooks: true,
+                })
+
   } catch (error) {
     res.status(500).send({ message: error.message });
   }
@@ -692,6 +727,17 @@ exports.updateImageKotamaAuto = async (req, res) => {
 
       // Mengirimkan array base64 ke client
       res.json({ images: imageList });
+
+                 // save log to database
+                 await UserActivityLog.create({
+                  email: req.user.email,
+                  activity_date: new Date(),
+                  activity: 'Update Auto All Image Logo Default Kotama',
+                  ip_address: req.ip
+                },{
+                  user: req.user,
+                  individualHooks: true,
+                })
   } catch (error) {
       console.error('Error:', error);
       res.status(500).json({ error: 'Internal Server Error' });

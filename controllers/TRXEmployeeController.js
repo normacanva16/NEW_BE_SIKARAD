@@ -21,6 +21,7 @@ const Op = db.Sequelize.Op;
 
 const DataEmployee = db.trx_employee_model;
 const KotamaBalakpus = db.mst_kotama_model;
+const UserActivityLog = db.trx_user_activity_log_model;
 
 const { formatDate } = require('../helpers/file-helper');
 
@@ -583,6 +584,18 @@ exports.uploadfileexcelByKotama = async (req, res) => {
             error: error.message,
           });
         });
+
+                   // save log to database
+                   await UserActivityLog.create({
+                    email: req.user.email,
+                    activity_date: new Date(),
+                    activity: 'Upload File excel Data Personel Kotama/Balakpus' + findKotama.dataValues.nama,
+                    ip_address: req.ip
+                  },{
+                    user: req.user,
+                    individualHooks: true,
+                  })
+
   } catch (error) {
     console.log(error);
     res.status(500).send({
@@ -964,6 +977,17 @@ await sequelize.query(relawanQuery, {
   type: QueryTypes.DELETE,
   replacements: { arrayOfIds },
 });
+
+  // save log to database
+  await UserActivityLog.create({
+    email: req.user.email,
+    activity_date: new Date(),
+    activity: 'Delete Data Personel',
+    ip_address: req.ip
+  },{
+    user: req.user,
+    individualHooks: true,
+  })
 
     return response.successResponse(res, `success delete data pegawai`);
     

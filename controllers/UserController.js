@@ -16,6 +16,7 @@ const Op = db.Sequelize.Op;
 
 const User = db.mst_users_model;
 const Role = db.mst_roles_model;
+const UserActivityLog = db.trx_user_activity_log_model;
 
 exports.createUser = async (req, res) => {
   const { role_id, fullname, phone_number, email, username, password } = req.body;
@@ -47,6 +48,17 @@ exports.createUser = async (req, res) => {
       .catch((err) => {
         res.status(500).send({ message: err.message });
       });
+
+        // save log to database
+        await UserActivityLog.create({
+          email: req.user.email,
+          activity_date: new Date(),
+          activity: 'Create User' + email,
+          ip_address: req.ip
+        },{
+          user: req.user,
+          individualHooks: true,
+        })
     // }
 
 };
@@ -153,6 +165,17 @@ exports.delete = async (req, res) => {
     .catch((err) => {
       res.status(500).send({ message: err.message });
     });
+
+            // save log to database
+            await UserActivityLog.create({
+              email: req.user.email,
+              activity_date: new Date(),
+              activity: 'Delete User',
+              ip_address: req.ip
+            },{
+              user: req.user,
+              individualHooks: true,
+            })
 };
 
 exports.updateUser = async (req, res) => {
@@ -192,6 +215,17 @@ exports.updateUser = async (req, res) => {
       .catch((err) => {
         res.status(500).send({ message: err.message });
       });
+
+              // save log to database
+              await UserActivityLog.create({
+                email: req.user.email,
+                activity_date: new Date(),
+                activity: 'Update data User' + email,
+                ip_address: req.ip
+              },{
+                user: req.user,
+                individualHooks: true,
+              })
  
 };
 

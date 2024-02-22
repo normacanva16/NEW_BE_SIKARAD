@@ -15,11 +15,11 @@ const authorize = require('../helpers/authorize');
 const router = Router();
 dotEnv.config();
 
-router.post('', validate(validateCreateMasterKotama), KotamaController.create);
+router.post('',verifyToken, authorize.permit(['superadmin', 'admin']), validate(validateCreateMasterKotama), KotamaController.create);
 router.get('', KotamaController.list);
 router.get('/:id', KotamaController.view);
-router.put('/:id', upload.multerUploadImage, KotamaController.update);
-router.post('/auto-create', KotamaController.AutoCreate);
+router.put('/:id', verifyToken, authorize.permit(['superadmin', 'admin']), upload.multerUploadImage, KotamaController.update);
+router.post('/auto-create', verifyToken, authorize.permit(['superadmin', 'admin']), KotamaController.AutoCreate);
 router.get('/list/option', KotamaController.listkotamabalakpus);
-router.put('/image/auto',KotamaController.updateImageKotamaAuto);
+router.put('/image/auto', verifyToken, authorize.permit(['superadmin', 'admin']),KotamaController.updateImageKotamaAuto);
 module.exports = router;
