@@ -11,6 +11,10 @@ const TRXEmployeeRoute = require('../routes/trx_employee_route');
 const dashboardRoute = require('../routes/new_dashboard_route');
 const UserLogRoute = require('../routes/trx_activity_user_route');
 exports.start = (config) => {
+
+  // Set timeout to 5 minutes (300000 milliseconds)
+const TIMEOUT = 300000;
+
   const app = express();
 
   app.use(helmet());
@@ -26,6 +30,19 @@ exports.start = (config) => {
 
   // support parsing of application/x-www-form-urlencoded post data
   app.use(bodyParser.urlencoded({ extended: true }));
+
+  // Set timeout for all routes
+  app.use((req, res, next) => {
+    req.setTimeout(TIMEOUT, () => {
+      console.log('Request timed out');
+      res.status(500).send('Request timed out');
+    });
+    res.setTimeout(TIMEOUT, () => {
+      console.log('Response timed out');
+      res.status(500).send('Response timed out');
+    });
+    next();
+  });
 
   app.get(`/`, function (req, res) {
     res.status(200).json({
