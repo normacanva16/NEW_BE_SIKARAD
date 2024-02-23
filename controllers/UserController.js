@@ -96,6 +96,11 @@ exports.listUser = async (req, res) => {
             username: {
               [Op.like]: `%${word}%`,
             },
+          },
+          {
+            phone_number: {
+              [Op.like]: `%${word}%`,
+            },
           }
         ],
       });
@@ -109,6 +114,7 @@ exports.listUser = async (req, res) => {
       'fullname',
       'username',
       'email',
+      'phone_number',
       'is_active',
       'created_date',
       'created_by',
