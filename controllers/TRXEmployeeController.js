@@ -616,8 +616,6 @@ exports.uploadfileexcelByKotama = async (req, res) => {
       return res.status(400).send('Please upload an excel file!');
     }
 
-    const allSheetData = [];
-
     const workbook = XLSX.readFile(file.path);
     const sheetName = workbook.SheetNames[0]; // Assuming there is only one sheet
     const findKotama = await KotamaBalakpus.findOne({
@@ -640,57 +638,47 @@ exports.uploadfileexcelByKotama = async (req, res) => {
     // Skip header
     rows.shift();
 
-    rows.forEach((row) => {
-      let formattedDate;
-      if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
-        const timestamp = (parseInt(row[indexheader[6]]) - 25569) * 86400 * 1000;
-        const dateObject = new Date(timestamp);
-        formattedDate = dateObject.toLocaleDateString();
-      }
-      let datakorban = {
-        kotama_balakpus: findKotama.dataValues.nama,
-        code_kotama_balakpus: findKotama.dataValues.code,
-        kode_jabatan: row[indexheader[0]],
-        nama: row[indexheader[1]],
-        pangkat: row[indexheader[2]],
-        korps: row[indexheader[3]],
-        nrp: row[indexheader[4]],
-        jabatan: row[indexheader[5]],
-        tmt_jabatan: formattedDate,
-        abit: row[indexheader[7]],
-        tingkat_jabatan: row[indexheader[8]],
-        dafukaj: row[indexheader[9]],
-      };
+    // Batch Processing
+    const batchSize = 100; // Adjust batch size as needed
+    for (let i = 0; i < rows.length; i += batchSize) {
+      const batchRows = rows.slice(i, i + batchSize);
 
-      allSheetData.push(datakorban);
-    });
-
-    await sequelize.transaction(async (t) => {
-      // Delete existing records before bulk create
-      const organisaisQuery = `
-        DELETE FROM trx_employee WHERE code_kotama_balakpus = '${findKotama.dataValues.code}'`;
-
-      await sequelize.query(organisaisQuery, {
-        type: QueryTypes.DELETE,
-        transaction: t,
+      const allSheetData = batchRows.map((row) => {
+        let formattedDate;
+        if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
+          const timestamp = (parseInt(row[indexheader[6]]) - 25569) * 86400 * 1000;
+          const dateObject = new Date(timestamp);
+          formattedDate = dateObject.toLocaleDateString();
+        }
+        return {
+          kotama_balakpus: findKotama.dataValues.nama,
+          code_kotama_balakpus: findKotama.dataValues.code,
+          kode_jabatan: row[indexheader[0]],
+          nama: row[indexheader[1]],
+          pangkat: row[indexheader[2]],
+          korps: row[indexheader[3]],
+          nrp: row[indexheader[4]],
+          jabatan: row[indexheader[5]],
+          tmt_jabatan: formattedDate,
+          abit: row[indexheader[7]],
+          tingkat_jabatan: row[indexheader[8]],
+          dafukaj: row[indexheader[9]],
+        };
       });
 
       // Bulk insert data
       await DataEmployee.bulkCreate(allSheetData, {
         user: req.user,
         individualHooks: true,
-        transaction: t,
       });
+    }
 
-      // Save log to database
-      await UserActivityLog.create({
-        email: req.user.email,
-        activity_date: new Date(),
-        activity: 'Upload File excel Data Personel Kotama/Balakpus ' + findKotama.dataValues.nama,
-        ip_address: req.ip
-      }, {
-        transaction: t,
-      });
+    // Save log to database (outside the loop)
+    await UserActivityLog.create({
+      email: req.user.email,
+      activity_date: new Date(),
+      activity: 'Upload File excel Data Personel Kotama/Balakpus ' + findKotama.dataValues.nama,
+      ip_address: req.ip
     });
 
     res.status(200).send({
@@ -708,6 +696,7 @@ exports.uploadfileexcelByKotama = async (req, res) => {
   // Ensure to import unlinkFile and call it appropriately
   await unlinkFile(req.file.path);
 };
+
 
 
 exports.view = async (req, res) => {
