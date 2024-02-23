@@ -616,7 +616,7 @@ exports.uploadfileexcelByKotama = async (req, res) => {
       return res.status(400).send('Please upload an excel file!');
     }
 
-    const workbook = XLSX.readFile(file.path);
+    const workbook = XLSX.readFile(file.path, { cellDates: true, dateNF: 'YYYY-MM-DD' });
     const sheetName = workbook.SheetNames[0]; // Assuming there is only one sheet
     const findKotama = await KotamaBalakpus.findOne({
       where: { nama: sheetName },
@@ -630,50 +630,61 @@ exports.uploadfileexcelByKotama = async (req, res) => {
       });
     }
 
-    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+    const rowsGenerator = XLSX.stream.to_json(workbook.Sheets[sheetName]);
+    
+    const processBatch = async (batchRows) => {
+      const allSheetData = [];
 
-    const colheaders = ['KODE JAB', 'NAMA', 'PANGKAT', 'KORPS', 'NRP', 'JABATAN', 'TMT JAB', 'ABIT', 'TINGKAT JAB', 'DAFUKAJ'];
-    const indexheader = colheaders.map((header) => (rows[0] || []).indexOf(header));
-
-    // Skip header
-    rows.shift();
-
-    // Batch Processing
-    const batchSize = 100; // Adjust batch size as needed
-    for (let i = 0; i < rows.length; i += batchSize) {
-      const batchRows = rows.slice(i, i + batchSize);
-
-      const allSheetData = batchRows.map((row) => {
+      for (const row of batchRows) {
         let formattedDate;
-        if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
-          const timestamp = (parseInt(row[indexheader[6]]) - 25569) * 86400 * 1000;
-          const dateObject = new Date(timestamp);
+        if (row['TMT JAB'] != null && row['TMT JAB'] !== '') {
+          const dateObject = new Date(row['TMT JAB']);
           formattedDate = dateObject.toLocaleDateString();
         }
-        return {
+        const datakorban = {
           kotama_balakpus: findKotama.dataValues.nama,
           code_kotama_balakpus: findKotama.dataValues.code,
-          kode_jabatan: row[indexheader[0]],
-          nama: row[indexheader[1]],
-          pangkat: row[indexheader[2]],
-          korps: row[indexheader[3]],
-          nrp: row[indexheader[4]],
-          jabatan: row[indexheader[5]],
+          kode_jabatan: row['KODE JAB'],
+          nama: row['NAMA'],
+          pangkat: row['PANGKAT'],
+          korps: row['KORPS'],
+          nrp: row['NRP'],
+          jabatan: row['JABATAN'],
           tmt_jabatan: formattedDate,
-          abit: row[indexheader[7]],
-          tingkat_jabatan: row[indexheader[8]],
-          dafukaj: row[indexheader[9]],
+          abit: row['ABIT'],
+          tingkat_jabatan: row['TINGKAT JAB'],
+          dafukaj: row['DAFUKAJ'],
         };
-      });
+        allSheetData.push(datakorban);
+      }
 
-      // Bulk insert data
       await DataEmployee.bulkCreate(allSheetData, {
         user: req.user,
         individualHooks: true,
       });
+    };
+
+    const batchSize = 100; // Adjust batch size as needed
+    let batchRows = [];
+    let rowCount = 0;
+
+    for await (const row of rowsGenerator) {
+      batchRows.push(row);
+      rowCount++;
+
+      if (rowCount === batchSize) {
+        await processBatch(batchRows);
+        batchRows = [];
+        rowCount = 0;
+      }
     }
 
-    // Save log to database (outside the loop)
+    // Process remaining rows
+    if (batchRows.length > 0) {
+      await processBatch(batchRows);
+    }
+
+    // Save log to database
     await UserActivityLog.create({
       email: req.user.email,
       activity_date: new Date(),
@@ -696,6 +707,7 @@ exports.uploadfileexcelByKotama = async (req, res) => {
   // Ensure to import unlinkFile and call it appropriately
   await unlinkFile(req.file.path);
 };
+
 
 
 
