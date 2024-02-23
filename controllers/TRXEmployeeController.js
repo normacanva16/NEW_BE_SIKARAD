@@ -635,13 +635,13 @@ exports.uploadfileexcelByKotama = async (req, res) => {
     }
 
     // Delete existing records before bulk create
-    const organisaisQuery = `
-          DELETE FROM trx_employee WHERE code_kotama_balakpus = '${findKotama.dataValues.code}'`;
+    // const organisaisQuery = `
+    //       DELETE FROM trx_employee WHERE code_kotama_balakpus = '${findKotama.dataValues.code}'`;
 
-    await sequelize.query(organisaisQuery, {
-      type: QueryTypes.DELETE,
-      transaction: transaction,
-    });
+    // await sequelize.query(organisaisQuery, {
+    //   type: QueryTypes.DELETE,
+    //   transaction: transaction,
+    // });
 
     const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
 
