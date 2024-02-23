@@ -608,24 +608,21 @@ exports.uploadfileexcel = async (req, res) => {
 // };
 
 exports.uploadfileexcelByKotama = async (req, res) => {
-  const transaction = await sequelize.transaction({
-    autocommit: false
-  });
-
   try {
     const file = req.file;
     console.log("path", req.file.path)
 
-    if (!file) {
+    if (file === undefined) {
       return res.status(400).send('Please upload an excel file!');
     }
 
-    const workbookStream = XLSX.stream.toReadableStream(fs.createReadStream(file.path));
-    const kotamaName = await extractSheetName(workbookStream); // Extract sheet name without reading entire workbook
+    const allSheetData = [];
+
+    const workbook = XLSX.readFile(file.path);
+    const sheetName = workbook.SheetNames[0]; // Assuming there is only one sheet
     const findKotama = await KotamaBalakpus.findOne({
-      where: { nama: kotamaName },
+      where: { nama: sheetName },
       attributes: ['code', 'nama'],
-      transaction
     });
 
     if (!findKotama) {
@@ -635,83 +632,82 @@ exports.uploadfileexcelByKotama = async (req, res) => {
       });
     }
 
-    const deleteQuery = `DELETE FROM trx_employee WHERE code_kotama_balakpus = '${findKotama.code}'`;
-    await sequelize.query(deleteQuery, { transaction });
+    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
 
-    const streamParser = XLSX.stream.to_json({ header: 1 });
+    const colheaders = ['KODE JAB', 'NAMA', 'PANGKAT', 'KORPS', 'NRP', 'JABATAN', 'TMT JAB', 'ABIT', 'TINGKAT JAB', 'DAFUKAJ'];
+    const indexheader = colheaders.map((header) => (rows[0] || []).indexOf(header));
 
-    streamParser.on('data', async (rows) => {
-      // Processing data rows in chunks
-      const allSheetData = [];
-      const colheaders = ['KODE JAB', 'NAMA', 'PANGKAT', 'KORPS', 'NRP', 'JABATAN', 'TMT JAB', 'ABIT', 'TINGKAT JAB', 'DAFUKAJ'];
-      const indexheader = colheaders.map((header) => (rows[0] || []).indexOf(header));
+    // Skip header
+    rows.shift();
 
-      rows.slice(1).forEach((row) => {
-        let formattedDate = null;
-        if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
-          const timestamp = (parseInt(row[indexheader[6]]) - 25569) * 86400 * 1000;
-          const dateObject = new Date(timestamp);
-          formattedDate = dateObject.toLocaleDateString();
-        }
+    rows.forEach((row) => {
+      let formattedDate;
+      if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
+        const timestamp = (parseInt(row[indexheader[6]]) - 25569) * 86400 * 1000;
+        const dateObject = new Date(timestamp);
+        formattedDate = dateObject.toLocaleDateString();
+      }
+      let datakorban = {
+        kotama_balakpus: findKotama.dataValues.nama,
+        code_kotama_balakpus: findKotama.dataValues.code,
+        kode_jabatan: row[indexheader[0]],
+        nama: row[indexheader[1]],
+        pangkat: row[indexheader[2]],
+        korps: row[indexheader[3]],
+        nrp: row[indexheader[4]],
+        jabatan: row[indexheader[5]],
+        tmt_jabatan: formattedDate,
+        abit: row[indexheader[7]],
+        tingkat_jabatan: row[indexheader[8]],
+        dafukaj: row[indexheader[9]],
+      };
 
-        const datakorban = {
-          kotama_balakpus: findKotama.nama,
-          code_kotama_balakpus: findKotama.code,
-          kode_jabatan: row[indexheader[0]],
-          nama: row[indexheader[1]],
-          pangkat: row[indexheader[2]],
-          korps: row[indexheader[3]],
-          nrp: row[indexheader[4]],
-          jabatan: row[indexheader[5]],
-          tmt_jabatan: formattedDate,
-          abit: row[indexheader[7]],
-          tingkat_jabatan: row[indexheader[8]],
-          dafukaj: row[indexheader[9]],
-        };
+      allSheetData.push(datakorban);
+    });
 
-        allSheetData.push(datakorban);
+    await sequelize.transaction(async (t) => {
+      // Delete existing records before bulk create
+      const organisaisQuery = `
+        DELETE FROM trx_employee WHERE code_kotama_balakpus = '${findKotama.dataValues.code}'`;
+
+      await sequelize.query(organisaisQuery, {
+        type: QueryTypes.DELETE,
+        transaction: t,
       });
 
+      // Bulk insert data
       await DataEmployee.bulkCreate(allSheetData, {
         user: req.user,
         individualHooks: true,
-        transaction,
+        transaction: t,
       });
-    });
 
-    streamParser.on('end', async () => {
-      // save log to database
+      // Save log to database
       await UserActivityLog.create({
         email: req.user.email,
         activity_date: new Date(),
-        activity: 'Upload File excel Data Personel Kotama/Balakpus ' + findKotama.nama,
+        activity: 'Upload File excel Data Personel Kotama/Balakpus ' + findKotama.dataValues.nama,
         ip_address: req.ip
-      }, { transaction });
-
-      await transaction.commit();
-      res.status(200).send({
-        message: 'Uploaded the file successfully: ' + req.file.originalname,
-        fileKey: file.filename,
+      }, {
+        transaction: t,
       });
+    });
+
+    res.status(200).send({
+      message: 'Uploaded the file successfully: ' + req.file.originalname,
+      fileKey: file.filename,
     });
 
   } catch (error) {
     console.log(error);
-    await transaction.rollback();
     res.status(500).send({
       message: 'Could not upload the file: ' + req.file.originalname,
     });
-  } finally {
-    await unlinkFile(req.file.path);
   }
+
+  // Ensure to import unlinkFile and call it appropriately
+  await unlinkFile(req.file.path);
 };
-
-async function extractSheetName(workbookStream) {
-  const workbook = new ExcelJS.stream.xlsx.WorkbookReader(workbookStream);
-  const firstSheet = await workbook.worksheets().next();
-  return firstSheet.value.name;
-}
-
 
 
 exports.view = async (req, res) => {
