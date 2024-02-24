@@ -794,87 +794,189 @@ exports.uploadfileexcel = async (req, res) => {
 //   }
 // }
 
+// exports.uploadfileexcelByKotama = async (req, res) => {
+//   try {
+//     const file = req.file;
+
+//     if (file == undefined) {
+//       return res.status(400).send('Please upload an excel file!');
+//     }
+
+//     const rows = await readXlsxFile(file.path, { sheet: 'Data' });
+
+//     // Pastikan bahwa ada baris yang terbaca
+//     if (rows.length === 0) {
+//       return res.status(400).send('No data found in the excel file!');
+//     }
+
+//     // Pastikan bahwa nama kolom sesuai dengan yang Anda harapkan
+//     const colheaders = [
+//       'KODE JAB',
+//       'NAMA',
+//       'PANGKAT',
+//       'KORPS',
+//       'NRP',
+//       'JABATAN',
+//       'TMT JAB',
+//       'ABIT',
+//       'TINGKAT JAB',
+//       'DAFUKAJ'
+//     ];
+
+//     // Periksa indeks kolom untuk setiap kolom yang Anda butuhkan
+//     const indexheader = colheaders.map(col => rows[0].indexOf(col));
+
+//     const bulkInsertData = rows
+//       .filter((row, index) => index !== 0 && row[indexheader[5]] !== null) // Pastikan untuk memfilter header
+//       .map(row => {
+//         let formattedDate = null;
+//         if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
+//           const dateObject = new Date(row[indexheader[6]]);
+//           formattedDate = dateObject.toLocaleDateString(); // Perhatikan bahwa format tanggal ini cocok dengan database Anda
+//         }
+//         return {
+//           kotama_balakpus: 'KODAM I BB',
+//           code_kotama_balakpus: 1,
+//           kode_jabatan: row[indexheader[0]],
+//           nama: row[indexheader[1]],
+//           pangkat: row[indexheader[2]],
+//           korps: row[indexheader[3]],
+//           nrp: row[indexheader[4]],
+//           jabatan: row[indexheader[5]],
+//           tmt_jabatan: formattedDate,
+//           abit: row[indexheader[7]],
+//           tingkat_jabatan: row[indexheader[8]],
+//           dafukaj: row[indexheader[9]],
+//           create_date: new Date(),
+//           updated_date: new Date()
+//         };
+//       });
+
+//     await DataEmployee.bulkCreate(bulkInsertData, {
+//       individualHooks: true,
+//     });
+
+//     // Save log to database
+//     await UserActivityLog.create({
+//       email: req.user.email,
+//       activity_date: new Date(),
+//       activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
+//       ip_address: req.ip
+//     });
+
+//     res.status(200).send({
+//       message: 'Uploaded the file successfully: ' + req.file.originalname,
+//       fileKey: file.filename,
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send({
+//       message: 'Could not upload the file: ' + req.file.originalname,
+//     });
+//   }
+// }
+
 exports.uploadfileexcelByKotama = async (req, res) => {
   try {
     const file = req.file;
 
-    if (file == undefined) {
+    if (!file) {
       return res.status(400).send('Please upload an excel file!');
     }
 
-    const rows = await readXlsxFile(file.path, { sheet: 'Data' });
+    const batchLimit = 100; // Set the batch limit
 
-    // Pastikan bahwa ada baris yang terbaca
-    if (rows.length === 0) {
-      return res.status(400).send('No data found in the excel file!');
-    }
-
-    // Pastikan bahwa nama kolom sesuai dengan yang Anda harapkan
-    const colheaders = [
-      'KODE JAB',
-      'NAMA',
-      'PANGKAT',
-      'KORPS',
-      'NRP',
-      'JABATAN',
-      'TMT JAB',
-      'ABIT',
-      'TINGKAT JAB',
-      'DAFUKAJ'
-    ];
-
-    // Periksa indeks kolom untuk setiap kolom yang Anda butuhkan
-    const indexheader = colheaders.map(col => rows[0].indexOf(col));
-
-    const bulkInsertData = rows
-      .filter((row, index) => index !== 0 && row[indexheader[5]] !== null) // Pastikan untuk memfilter header
-      .map(row => {
+    const processBatch = async (rows) => {
+      const bulkInsertData = [];
+      for (let row of rows) {
         let formattedDate = null;
-        if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
-          const dateObject = new Date(row[indexheader[6]]);
-          formattedDate = dateObject.toLocaleDateString(); // Perhatikan bahwa format tanggal ini cocok dengan database Anda
+        if (row[6] != null && row[6] !== '') {
+          const dateObject = new Date(row[6]);
+          if (!isNaN(dateObject)) {
+            formattedDate = dateObject.toLocaleDateString();
+          } else {
+            console.error('Invalid date:', row[6]); // Tampilkan tanggal yang tidak valid
+            // Lakukan penanganan untuk tanggal tidak valid, misalnya lewati atau atur ke null
+            // Di sini saya akan menetapkan tanggal yang tidak valid ke null
+          }
         }
-        return {
+        bulkInsertData.push({
           kotama_balakpus: 'KODAM I BB',
           code_kotama_balakpus: 1,
-          kode_jabatan: row[indexheader[0]],
-          nama: row[indexheader[1]],
-          pangkat: row[indexheader[2]],
-          korps: row[indexheader[3]],
-          nrp: row[indexheader[4]],
-          jabatan: row[indexheader[5]],
+          kode_jabatan: row[0],
+          nama: row[1],
+          pangkat: row[2],
+          korps: row[3],
+          nrp: row[4],
+          jabatan: row[5],
           tmt_jabatan: formattedDate,
-          abit: row[indexheader[7]],
-          tingkat_jabatan: row[indexheader[8]],
-          dafukaj: row[indexheader[9]],
-          create_date: new Date(),
-          updated_date: new Date()
-        };
+          abit: row[7],
+          tingkat_jabatan: row[8],
+          dafukaj: row[9]
+        });
+      }
+      await DataEmployee.bulkCreate(bulkInsertData, { individualHooks: true });
+    };
+
+    const stream = fs.createReadStream(file.path);
+    let batchCount = 0;
+    let rowsBuffer = [];
+    let headerSkipped = false; // Flag untuk menandai apakah header sudah dilewati
+
+    readXlsxFile(stream, { sheet: 'Data' })
+      .then(async (rows) => {
+        for (const row of rows) {
+          if (!headerSkipped) {
+            headerSkipped = true;
+            continue; // Lewati baris header
+          }
+
+          if (batchCount < batchLimit) {
+            rowsBuffer.push(row);
+            batchCount++;
+          } else {
+            await processBatch(rowsBuffer);
+            rowsBuffer = [row];
+            batchCount = 1;
+          }
+        }
+
+        if (rowsBuffer.length > 0) {
+          await processBatch(rowsBuffer);
+        }
+
+        // Save log to database
+        await UserActivityLog.create({
+          email: req.user.email,
+          activity_date: new Date(),
+          activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
+          ip_address: req.ip
+        });
+
+        res.status(200).send({
+          message: 'Uploaded the file successfully: ' + req.file.originalname,
+          fileKey: file.filename,
+        });
+      })
+      .catch(error => {
+        console.error(error);
+        res.status(500).send({
+          message: 'Could not upload the file: ' + req.file.originalname,
+        });
+      })
+      .finally(() => {
+        // Remove uploaded file
+        fs.unlinkSync(file.path);
       });
-
-    await DataEmployee.bulkCreate(bulkInsertData, {
-      individualHooks: true,
-    });
-
-    // Save log to database
-    await UserActivityLog.create({
-      email: req.user.email,
-      activity_date: new Date(),
-      activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
-      ip_address: req.ip
-    });
-
-    res.status(200).send({
-      message: 'Uploaded the file successfully: ' + req.file.originalname,
-      fileKey: file.filename,
-    });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).send({
       message: 'Could not upload the file: ' + req.file.originalname,
     });
   }
 }
+
+
 
 
 exports.view = async (req, res) => {
