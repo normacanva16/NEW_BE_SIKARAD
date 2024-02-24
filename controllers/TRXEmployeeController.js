@@ -879,6 +879,21 @@ exports.uploadfileexcel = async (req, res) => {
 exports.uploadfileexcelByKotama = async (req, res) => {
   try {
     const file = req.file;
+    const codekotama = parseInt(req.query.code);
+
+    // Menghapus data dari tabel trx_employee menggunakan query SQL
+    await sequelize.query(`DELETE FROM trx_employee WHERE code_kotama_balakpus = :codekotama`, {
+      replacements: { codekotama: codekotama }
+    });
+
+    const kotamanama = await KotamaBalakpus.findOne({
+      where: {
+        code: codekotama,
+      },
+      attributes: ['nama'],  
+    })
+
+    let namakotama = kotamanama.nama
 
     if (!file) {
       return res.status(400).send('Please upload an excel file!');
@@ -901,8 +916,8 @@ exports.uploadfileexcelByKotama = async (req, res) => {
           }
         }
         bulkInsertData.push({
-          kotama_balakpus: 'KODAM I BB',
-          code_kotama_balakpus: 1,
+          kotama_balakpus: namakotama,
+          code_kotama_balakpus: codekotama,
           kode_jabatan: row[0],
           nama: row[1],
           pangkat: row[2],
@@ -975,9 +990,6 @@ exports.uploadfileexcelByKotama = async (req, res) => {
     });
   }
 }
-
-
-
 
 exports.view = async (req, res) => {
   const { id } = req.params;
