@@ -924,7 +924,8 @@ exports.uploadfileexcelByKotama = async (req, res) => {
           dafukaj: row[9]
         });
       }
-      await DataEmployee.bulkCreate(bulkInsertData, { individualHooks: true });
+      console.log("bulkInsertData",bulkInsertData.length);
+      await DataEmployee.bulkCreate(bulkInsertData, { individualHooks: true, logging: false  });
     };
 
     const stream = fs.createReadStream(file.path);
