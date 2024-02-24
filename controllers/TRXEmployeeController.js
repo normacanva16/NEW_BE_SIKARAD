@@ -607,6 +607,107 @@ exports.uploadfileexcel = async (req, res) => {
 //   await unlinkFile(req.file.path);
 // };
 
+// exports.uploadfileexcelByKotama = async (req, res) => {
+//   try {
+//     const file = req.file;
+//     console.log("path", req.file.path)
+
+//     if (file === undefined) {
+//       return res.status(400).send('Please upload an excel file!');
+//     }
+
+//     const workbook = XLSX.readFile(file.path, { cellDates: true, dateNF: 'YYYY-MM-DD' });
+//     const sheetName = workbook.SheetNames[0]; // Assuming there is only one sheet
+//     const findKotama = await KotamaBalakpus.findOne({
+//       where: { nama: sheetName },
+//       attributes: ['code', 'nama'],
+//     });
+
+//     if (!findKotama) {
+//       await unlinkFile(req.file.path);
+//       return res.status(400).send({
+//         message: 'Kotama Balakpus not found, check your sheetname and try again',
+//       });
+//     }
+
+//     const rowsGenerator = XLSX.stream.to_json(workbook.Sheets[sheetName]);
+    
+//     const processBatch = async (batchRows) => {
+//       const allSheetData = [];
+
+//       for (const row of batchRows) {
+//         let formattedDate;
+//         if (row['TMT JAB'] != null && row['TMT JAB'] !== '') {
+//           const dateObject = new Date(row['TMT JAB']);
+//           formattedDate = dateObject.toLocaleDateString();
+//         }
+//         const datakorban = {
+//           kotama_balakpus: findKotama.dataValues.nama,
+//           code_kotama_balakpus: findKotama.dataValues.code,
+//           kode_jabatan: row['KODE JAB'],
+//           nama: row['NAMA'],
+//           pangkat: row['PANGKAT'],
+//           korps: row['KORPS'],
+//           nrp: row['NRP'],
+//           jabatan: row['JABATAN'],
+//           tmt_jabatan: formattedDate,
+//           abit: row['ABIT'],
+//           tingkat_jabatan: row['TINGKAT JAB'],
+//           dafukaj: row['DAFUKAJ'],
+//         };
+//         allSheetData.push(datakorban);
+//       }
+
+//       await DataEmployee.bulkCreate(allSheetData, {
+//         user: req.user,
+//         individualHooks: true,
+//       });
+//     };
+
+//     const batchSize = 100; // Adjust batch size as needed
+//     let batchRows = [];
+//     let rowCount = 0;
+
+//     for await (const row of rowsGenerator) {
+//       batchRows.push(row);
+//       rowCount++;
+
+//       if (rowCount === batchSize) {
+//         await processBatch(batchRows);
+//         batchRows = [];
+//         rowCount = 0;
+//       }
+//     }
+
+//     // Process remaining rows
+//     if (batchRows.length > 0) {
+//       await processBatch(batchRows);
+//     }
+
+//     // Save log to database
+//     await UserActivityLog.create({
+//       email: req.user.email,
+//       activity_date: new Date(),
+//       activity: 'Upload File excel Data Personel Kotama/Balakpus ' + findKotama.dataValues.nama,
+//       ip_address: req.ip
+//     });
+
+//     res.status(200).send({
+//       message: 'Uploaded the file successfully: ' + req.file.originalname,
+//       fileKey: file.filename,
+//     });
+
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send({
+//       message: 'Could not upload the file: ' + req.file.originalname,
+//     });
+//   }
+
+//   // Ensure to import unlinkFile and call it appropriately
+//   await unlinkFile(req.file.path);
+// };
+
 exports.uploadfileexcelByKotama = async (req, res) => {
   try {
     const file = req.file;
@@ -684,11 +785,11 @@ exports.uploadfileexcelByKotama = async (req, res) => {
       await processBatch(batchRows);
     }
 
-    // Save log to database
+    // Save log to database without including the query
     await UserActivityLog.create({
       email: req.user.email,
       activity_date: new Date(),
-      activity: 'Upload File excel Data Personel Kotama/Balakpus ' + findKotama.dataValues.nama,
+      activity: 'Upload File excel Data Personel Kotama/Balakpus',
       ip_address: req.ip
     });
 
@@ -702,13 +803,11 @@ exports.uploadfileexcelByKotama = async (req, res) => {
     res.status(500).send({
       message: 'Could not upload the file: ' + req.file.originalname,
     });
+  } finally {
+    // Ensure to import unlinkFile and call it appropriately
+    await unlinkFile(req.file.path);
   }
-
-  // Ensure to import unlinkFile and call it appropriately
-  await unlinkFile(req.file.path);
 };
-
-
 
 
 exports.view = async (req, res) => {
