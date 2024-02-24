@@ -959,7 +959,7 @@ exports.uploadfileexcelByKotama = async (req, res) => {
         await UserActivityLog.create({
           email: req.user.email,
           activity_date: new Date(),
-          activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
+          activity: 'Upload File excel Data Personel Kotama/Balakpus ' + namakotama,
           ip_address: req.ip
         });
 
