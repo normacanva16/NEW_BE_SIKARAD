@@ -23,10 +23,21 @@ exports.start = (config) => {
   app.use(methodOverride());
 
   // parse body params and attache them to req.body
-  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.json({ limit: '100mb' }));
 
   // support parsing of application/x-www-form-urlencoded post data
-  app.use(bodyParser.urlencoded({ extended: true }));
+  // app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.urlencoded({limit: '100mb', parameterLimit: 100000, extended: true}));
+
+  app.use(function(req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Timing-Allow-Origin', 600);
+    // res.setHeader('Access-Control-Max-Age', 0);
+    next();
+  });
 
   app.get(`/`, function (req, res) {
     res.status(200).json({
