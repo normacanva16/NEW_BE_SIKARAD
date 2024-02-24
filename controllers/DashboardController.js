@@ -685,7 +685,8 @@ exports.getDetailEmployeeByKotamaPeta = async (req, res) => {
     subquery.korps, 
     subquery.nrp, 
     subquery.jabatan, 
-    subquery.tmt_jabatan
+    subquery.tmt_jabatan,
+    subquery.satuan
 FROM (
     SELECT 
         trx_employee.id as employee_id,
@@ -696,6 +697,7 @@ FROM (
         trx_employee.korps as korps,
         trx_employee.nrp as nrp,
         trx_employee.jabatan as jabatan,
+        trx_employee.satuan as satuan,
         COALESCE(TO_CHAR(trx_employee.tmt_jabatan, 'DD Mon YYYY'), '') as tmt_jabatan,
         mst_kotama.id AS mst_kotama_id, 
         mst_kotama.code AS mst_kotama_code, 

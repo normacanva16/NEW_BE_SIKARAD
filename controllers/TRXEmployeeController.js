@@ -225,6 +225,7 @@ exports.listByAksiId = (req, res) => {
     'abit',
     'tingkat_jabatan',
     'dafukaj',
+    'satuan',
     // [
     //   Sequelize.literal('COALESCE(EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM tmt_jabatan), 0)'),
     //   'masa_jabatan'
@@ -264,7 +265,7 @@ exports.listByAksiId = (req, res) => {
     limit,
     offset,
     search,
-    searchFields: ['kotama_balakpus', 'pangkat', 'korps', 'nrp', 'jabatan', 'tmt_jabatan', 'nama', 'abit', 'dafukaj', 'tingkat_jabatan'],
+    searchFields: ['kotama_balakpus', 'pangkat', 'korps', 'nrp', 'jabatan', 'tmt_jabatan', 'nama', 'abit', 'dafukaj', 'tingkat_jabatan', 'satuan'],
     where: where,
     order: [['code_kotama_balakpus', 'ASC']],
   })
@@ -1025,6 +1026,11 @@ exports.view = async (req, res) => {
                 Sequelize.literal('COALESCE(TO_CHAR(tmt_jabatan, \'DD Mon YYYY\'), \'\')'),
                 'tmt_jabatan'
               ],
+              'satuan',
+              [
+                Sequelize.literal('COALESCE(TO_CHAR(tgl_lahir, \'DD Mon YYYY\'), \'\')'),
+                'tgl_lahir'
+              ],
               'abit',
               'tingkat_jabatan',
               'dafukaj',
@@ -1129,6 +1135,11 @@ exports.exportListEmployee = (req, res) => {
       'tmt_jabatan'
     ],
     [
+      Sequelize.literal('COALESCE(TO_CHAR(tgl_lahir, \'DD Mon YYYY\'), \'\')'),
+      'tgl_lahir'
+    ],
+    'satuan',
+    [
       Sequelize.literal(`
         COALESCE(
           (
@@ -1151,6 +1162,7 @@ exports.exportListEmployee = (req, res) => {
       data.rows.forEach((row) => {
         transaksiArray.push({
           kotama_balakpus: row.dataValues.kotama_balakpus,
+          satuan: row.dataValues.satuan,
           jabatan: row.dataValues.jabatan,
           masa_jabatan: row.dataValues.masa_jabatan,
           nama : row.dataValues.nama,
@@ -1162,9 +1174,10 @@ exports.exportListEmployee = (req, res) => {
       });
 
       const wb = new xl.Workbook();
-      const ws = wb.addWorksheet('Data Pegawai');
+      const ws = wb.addWorksheet('Data Personel');
       const headingColumnNames = [
         'KOTAMA / BALAKPUS',
+        'SATUAN',
         'JABATAN',
         'MASA JABATAN',
         'NAMA',
