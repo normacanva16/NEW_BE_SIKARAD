@@ -34,10 +34,14 @@ exports.start = (config) => {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
     res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Timing-Allow-Origin', 600);
-    // res.setHeader('Access-Control-Max-Age', 0);
     next();
-  });
+});
+
+// Middleware untuk mengatur batas waktu untuk Timing-Allow-Origin
+app.use(function(req, res, next) {
+    res.setHeader('Timing-Allow-Origin', '*');
+    next();
+});
 
   app.get(`/`, function (req, res) {
     res.status(200).json({
