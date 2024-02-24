@@ -709,6 +709,91 @@ exports.uploadfileexcel = async (req, res) => {
 //   await unlinkFile(req.file.path);
 // };
 
+// exports.uploadfileexcelByKotama = async (req, res) => {
+//   try {
+//     const file = req.file;
+
+//     if (file == undefined) {
+//       return res.status(400).send('Please upload an excel file!');
+//     }
+
+//     readXlsxFile(file.path, { sheet: 'Data' }).then(async(rows) => {
+//       // skip header
+
+//       console.log(rows[0]);
+//       let colheaders = [
+//         'KODE JAB',
+//         'NAMA',
+//         'PANGKAT',
+//         'KORPS',
+//         'NRP',
+//         'JABATAN',
+//         'TMT JAB',
+//         'ABIT',
+//         'TINGKAT JAB',
+//         'DAFUKAJ'
+//       ];
+
+//       let indexheader = [];
+
+//       for (const a of colheaders) {
+//         indexheader.push(rows[0].indexOf(a));
+//       }
+
+//       rows.shift();
+
+//       rows.forEach(async (row) => {
+//         if (row[indexheader[5]] != null) {
+//           let formattedDate;
+//             if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
+//               const dateObject = new Date(row[indexheader[6]]);
+//               formattedDate = dateObject.toLocaleDateString();
+//             }
+//             let datakorban = {
+//               kotama_balakpus: 'KODAM I BB',
+//               code_kotama_balakpus: 1,
+//               kode_jabatan: row[indexheader[0]],
+//               nama: row[indexheader[1]],
+//               pangkat: row[indexheader[2]],
+//               korps: row[indexheader[3]],
+//               nrp: row[indexheader[4]],
+//               jabatan: row[indexheader[5]],
+//               tmt_jabatan: formattedDate,
+//               abit: row[indexheader[7]],
+//               tingkat_jabatan: row[indexheader[8]],
+//               dafukaj: row[indexheader[9]],
+//             };
+
+//             await DataEmployee.create(datakorban, {
+//               user: req.user,
+//               individualHooks: true,
+//             });
+          
+//         }
+//       });
+
+//       await unlinkFile(file.path);
+//       // Save log to database
+//       await UserActivityLog.create({
+//        email: req.user.email,
+//        activity_date: new Date(),
+//        activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
+//        ip_address: req.ip
+//      });
+
+//       res.status(200).send({
+//         message: 'Uploaded the file successfully: ' + req.file.originalname,
+//         fileKey: file.filename,
+//       });
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).send({
+//       message: 'Could not upload the file: ' + req.file.originalname,
+//     });
+//   }
+// }
+
 exports.uploadfileexcelByKotama = async (req, res) => {
   try {
     const file = req.file;
@@ -717,11 +802,11 @@ exports.uploadfileexcelByKotama = async (req, res) => {
       return res.status(400).send('Please upload an excel file!');
     }
 
-    readXlsxFile(file.path, { sheet: 'Data' }).then(async(rows) => {
+    readXlsxFile(file.path, { sheet: 'Data' }).then(async (rows) => {
       // skip header
+      rows.shift();
 
-      console.log(rows[0]);
-      let colheaders = [
+      const colheaders = [
         'KODE JAB',
         'NAMA',
         'PANGKAT',
@@ -734,52 +819,44 @@ exports.uploadfileexcelByKotama = async (req, res) => {
         'DAFUKAJ'
       ];
 
-      let indexheader = [];
+      const indexheader = colheaders.map(col => rows[0].indexOf(col));
 
-      for (const a of colheaders) {
-        indexheader.push(rows[0].indexOf(a));
-      }
+      const bulkInsertData = rows
+        .filter(row => row[indexheader[5]] != null)
+        .map(row => {
+          let formattedDate = null;
+          if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
+            const dateObject = new Date(row[indexheader[6]]);
+            formattedDate = dateObject.toLocaleDateString();
+          }
+          return {
+            kotama_balakpus: 'KODAM I BB',
+            code_kotama_balakpus: 1,
+            kode_jabatan: row[indexheader[0]],
+            nama: row[indexheader[1]],
+            pangkat: row[indexheader[2]],
+            korps: row[indexheader[3]],
+            nrp: row[indexheader[4]],
+            jabatan: row[indexheader[5]],
+            tmt_jabatan: formattedDate,
+            abit: row[indexheader[7]],
+            tingkat_jabatan: row[indexheader[8]],
+            dafukaj: row[indexheader[9]],
+            createdAt: new Date(),
+            updatedAt: new Date()
+          };
+        });
 
-      rows.shift();
-
-      rows.forEach(async (row) => {
-        if (row[indexheader[5]] != null) {
-          let formattedDate;
-            if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
-              const dateObject = new Date(row[indexheader[6]]);
-              formattedDate = dateObject.toLocaleDateString();
-            }
-            let datakorban = {
-              kotama_balakpus: 'KODAM I BB',
-              code_kotama_balakpus: 1,
-              kode_jabatan: row[indexheader[0]],
-              nama: row[indexheader[1]],
-              pangkat: row[indexheader[2]],
-              korps: row[indexheader[3]],
-              nrp: row[indexheader[4]],
-              jabatan: row[indexheader[5]],
-              tmt_jabatan: formattedDate,
-              abit: row[indexheader[7]],
-              tingkat_jabatan: row[indexheader[8]],
-              dafukaj: row[indexheader[9]],
-            };
-
-            await DataEmployee.create(datakorban, {
-              user: req.user,
-              individualHooks: true,
-            });
-          
-        }
-      });
+      await DataEmployee.bulkCreate(bulkInsertData);
 
       await unlinkFile(file.path);
       // Save log to database
       await UserActivityLog.create({
-       email: req.user.email,
-       activity_date: new Date(),
-       activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
-       ip_address: req.ip
-     });
+        email: req.user.email,
+        activity_date: new Date(),
+        activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
+        ip_address: req.ip
+      });
 
       res.status(200).send({
         message: 'Uploaded the file successfully: ' + req.file.originalname,
