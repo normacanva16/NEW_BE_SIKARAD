@@ -886,14 +886,8 @@ exports.uploadfileexcelByKotama = async (req, res) => {
       replacements: { codekotama: codekotama }
     });
 
-    const kotamanama = await KotamaBalakpus.findOne({
-      where: {
-        code: codekotama,
-      },
-      attributes: ['nama'],  
-    })
-
-    let namakotama = kotamanama.nama
+    const kotamaResult = await sequelize.query(`SELECT nama FROM mst_kotama WHERE code = ${codekotama}`);
+    const namakotama = kotamaResult[0][0].nama;
 
     if (!file) {
       return res.status(400).send('Please upload an excel file!');
