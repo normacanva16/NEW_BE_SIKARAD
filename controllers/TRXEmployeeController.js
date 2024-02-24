@@ -881,11 +881,6 @@ exports.uploadfileexcelByKotama = async (req, res) => {
     const file = req.file;
     const codekotama = parseInt(req.query.code);
 
-    // Menghapus data dari tabel trx_employee menggunakan query SQL
-    await sequelize.query(`DELETE FROM trx_employee WHERE code_kotama_balakpus = :codekotama`, {
-      replacements: { codekotama: codekotama }
-    });
-
     const kotamaResult = await sequelize.query(`SELECT nama FROM mst_kotama WHERE code = ${codekotama}`);
     const namakotama = kotamaResult[0][0].nama;
 
