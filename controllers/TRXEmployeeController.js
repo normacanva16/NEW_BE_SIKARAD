@@ -893,7 +893,7 @@ exports.uploadfileexcelByKotama = async (req, res) => {
       return res.status(400).send('Please upload an excel file!');
     }
 
-    const batchLimit = 100; // Set the batch limit
+    const batchLimit = 1000; // Set the batch limit
 
     const processBatch = async (rows) => {
       const bulkInsertData = [];
