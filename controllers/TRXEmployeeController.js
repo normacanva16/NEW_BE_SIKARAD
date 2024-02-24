@@ -1411,7 +1411,8 @@ ORDER BY
       payload.push({
         text: a.nama,
         value: a.is_exist,
-        last_updated_date: a.last_updated_date
+        last_updated_date: a.last_updated_date,
+        code: a.code
       });
     }
     res.status(200).send(payload);
