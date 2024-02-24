@@ -876,127 +876,40 @@ exports.uploadfileexcel = async (req, res) => {
 //   }
 // }
 
-// exports.uploadfileexcelByKotama = async (req, res) => {
-//   try {
-//     const file = req.file;
-//     const codekotama = parseInt(req.query.code);
-
-//     const kotamaResult = await sequelize.query(`SELECT nama FROM mst_kotama WHERE code = ${codekotama}`);
-//     const namakotama = kotamaResult[0][0].nama;
-
-//     if (!file) {
-//       return res.status(400).send('Please upload an excel file!');
-//     }
-
-//     const batchLimit = 100; // Set the batch limit
-
-//     const processBatch = async (rows) => {
-//       const bulkInsertData = [];
-//       for (let row of rows) {
-//         let formattedDate = null;
-//         if (row[6] != null && row[6] !== '') {
-//           const dateObject = new Date(row[6]);
-//           if (!isNaN(dateObject)) {
-//             formattedDate = dateObject.toLocaleDateString();
-//           } else {
-//             console.error('Invalid date:', row[6]); // Tampilkan tanggal yang tidak valid
-//             // Lakukan penanganan untuk tanggal tidak valid, misalnya lewati atau atur ke null
-//             // Di sini saya akan menetapkan tanggal yang tidak valid ke null
-//           }
-//         }
-//         bulkInsertData.push({
-//           kotama_balakpus: namakotama,
-//           code_kotama_balakpus: codekotama,
-//           kode_jabatan: row[0],
-//           nama: row[1],
-//           pangkat: row[2],
-//           korps: row[3],
-//           nrp: row[4],
-//           jabatan: row[5],
-//           tmt_jabatan: formattedDate,
-//           abit: row[7],
-//           tingkat_jabatan: row[8],
-//           dafukaj: row[9]
-//         });
-//       }
-//       await DataEmployee.bulkCreate(bulkInsertData, { individualHooks: true });
-//     };
-
-//     const stream = fs.createReadStream(file.path);
-//     let batchCount = 0;
-//     let rowsBuffer = [];
-//     let headerSkipped = false; // Flag untuk menandai apakah header sudah dilewati
-
-//     readXlsxFile(stream, { sheet: 'Data' })
-//       .then(async (rows) => {
-//         for (const row of rows) {
-//           if (!headerSkipped) {
-//             headerSkipped = true;
-//             continue; // Lewati baris header
-//           }
-
-//           if (batchCount < batchLimit) {
-//             rowsBuffer.push(row);
-//             batchCount++;
-//           } else {
-//             await processBatch(rowsBuffer);
-//             rowsBuffer = [row];
-//             batchCount = 1;
-//           }
-//         }
-
-//         if (rowsBuffer.length > 0) {
-//           await processBatch(rowsBuffer);
-//         }
-
-//         // Save log to database
-//         await UserActivityLog.create({
-//           email: req.user.email,
-//           activity_date: new Date(),
-//           activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
-//           ip_address: req.ip
-//         });
-
-//         res.status(200).send({
-//           message: 'Uploaded the file successfully: ' + req.file.originalname,
-//           fileKey: file.filename,
-//         });
-//       })
-//       .catch(error => {
-//         console.error(error);
-//         res.status(500).send({
-//           message: 'Could not upload the file: ' + req.file.originalname,
-//         });
-//       })
-//       .finally(() => {
-//         // Remove uploaded file
-//         fs.unlinkSync(file.path);
-//       });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send({
-//       message: 'Could not upload the file: ' + req.file.originalname,
-//     });
-//   }
-// }
-
-
 exports.uploadfileexcelByKotama = async (req, res) => {
   try {
-    const { file, query: { code: codekotama } } = req;
-    const kotamaResult = await sequelize.query(`SELECT nama FROM mst_kotama WHERE code = ${parseInt(codekotama)}`);
-    const namakotama = kotamaResult[0][0].nama;
+    const file = req.file;
+    const codekotama = parseInt(req.query.code);
 
-    if (!file) throw new Error('Please upload an excel file!');
+    const kotamad = await KotamaBalakpus.findOne({
+      where: {
+        code: codekotama
+      },
+      attributes: ['nama']
+    })
+    const namakotama = kotamad.nama;
 
-    const batchLimit = 200;
-    const stream = fs.createReadStream(file.path);
-    const rowsBuffer = [];
+    if (!file) {
+      return res.status(400).send('Please upload an excel file!');
+    }
+
+    const batchLimit = 100; // Set the batch limit
 
     const processBatch = async (rows) => {
-      const bulkInsertData = rows.map(row => {
-        const formattedDate = row[6] && !isNaN(new Date(row[6])) ? new Date(row[6]).toLocaleDateString() : null;
-        return {
+      const bulkInsertData = [];
+      for (let row of rows) {
+        let formattedDate = null;
+        if (row[6] != null && row[6] !== '') {
+          const dateObject = new Date(row[6]);
+          if (!isNaN(dateObject)) {
+            formattedDate = dateObject.toLocaleDateString();
+          } else {
+            console.error('Invalid date:', row[6]); // Tampilkan tanggal yang tidak valid
+            // Lakukan penanganan untuk tanggal tidak valid, misalnya lewati atau atur ke null
+            // Di sini saya akan menetapkan tanggal yang tidak valid ke null
+          }
+        }
+        bulkInsertData.push({
           kotama_balakpus: namakotama,
           code_kotama_balakpus: codekotama,
           kode_jabatan: row[0],
@@ -1009,32 +922,70 @@ exports.uploadfileexcelByKotama = async (req, res) => {
           abit: row[7],
           tingkat_jabatan: row[8],
           dafukaj: row[9]
-        };
-      });
+        });
+      }
       await DataEmployee.bulkCreate(bulkInsertData, { individualHooks: true });
     };
 
+    const stream = fs.createReadStream(file.path);
+    let batchCount = 0;
+    let rowsBuffer = [];
+    let headerSkipped = false; // Flag untuk menandai apakah header sudah dilewati
+
     readXlsxFile(stream, { sheet: 'Data' })
-      .then(async rows => {
-        for (const [index, row] of rows.entries()) {
-          if (index === 0) continue; // Skip header
-          rowsBuffer.push(row);
-          if (rowsBuffer.length === batchLimit) {
+      .then(async (rows) => {
+        for (const row of rows) {
+          if (!headerSkipped) {
+            headerSkipped = true;
+            continue; // Lewati baris header
+          }
+
+          if (batchCount < batchLimit) {
+            rowsBuffer.push(row);
+            batchCount++;
+          } else {
             await processBatch(rowsBuffer);
-            rowsBuffer.length = 0;
+            rowsBuffer = [row];
+            batchCount = 1;
           }
         }
-        if (rowsBuffer.length > 0) await processBatch(rowsBuffer);
-        await UserActivityLog.create({ email: req.user.email, activity_date: new Date(), activity: 'Upload File excel Data Personel Kotama/Balakpus KODAM I BB', ip_address: req.ip });
-        res.status(200).send({ message: 'Uploaded the file successfully: ' + req.file.originalname, fileKey: file.filename });
+
+        if (rowsBuffer.length > 0) {
+          await processBatch(rowsBuffer);
+        }
+
+        // Save log to database
+        await UserActivityLog.create({
+          email: req.user.email,
+          activity_date: new Date(),
+          activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
+          ip_address: req.ip
+        });
+
+        res.status(200).send({
+          message: 'Uploaded the file successfully: ' + req.file.originalname,
+          fileKey: file.filename,
+        });
       })
-      .catch(error => { throw error; })
-      .finally(() => fs.unlinkSync(file.path));
+      .catch(error => {
+        console.error(error);
+        res.status(500).send({
+          message: 'Could not upload the file: ' + req.file.originalname,
+        });
+      })
+      .finally(() => {
+        // Remove uploaded file
+        fs.unlinkSync(file.path);
+      });
   } catch (error) {
     console.error(error);
-    res.status(500).send({ message: 'Could not upload the file: ' + req.file.originalname });
+    res.status(500).send({
+      message: 'Could not upload the file: ' + req.file.originalname,
+    });
   }
-};
+}
+
+
 
 exports.view = async (req, res) => {
   const { id } = req.params;
