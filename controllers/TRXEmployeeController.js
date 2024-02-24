@@ -802,66 +802,71 @@ exports.uploadfileexcelByKotama = async (req, res) => {
       return res.status(400).send('Please upload an excel file!');
     }
 
-    readXlsxFile(file.path, { sheet: 'Data' }).then(async (rows) => {
-      // skip header
-      rows.shift();
+    const rows = await readXlsxFile(file.path, { sheet: 'Data' });
 
-      const colheaders = [
-        'KODE JAB',
-        'NAMA',
-        'PANGKAT',
-        'KORPS',
-        'NRP',
-        'JABATAN',
-        'TMT JAB',
-        'ABIT',
-        'TINGKAT JAB',
-        'DAFUKAJ'
-      ];
+    // Pastikan bahwa ada baris yang terbaca
+    if (rows.length === 0) {
+      return res.status(400).send('No data found in the excel file!');
+    }
 
-      const indexheader = colheaders.map(col => rows[0].indexOf(col));
+    // Pastikan bahwa nama kolom sesuai dengan yang Anda harapkan
+    const colheaders = [
+      'KODE JAB',
+      'NAMA',
+      'PANGKAT',
+      'KORPS',
+      'NRP',
+      'JABATAN',
+      'TMT JAB',
+      'ABIT',
+      'TINGKAT JAB',
+      'DAFUKAJ'
+    ];
 
-      const bulkInsertData = rows
-        .filter(row => row[indexheader[5]] != null)
-        .map(row => {
-          let formattedDate = null;
-          if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
-            const dateObject = new Date(row[indexheader[6]]);
-            formattedDate = dateObject.toLocaleDateString();
-          }
-          return {
-            kotama_balakpus: 'KODAM I BB',
-            code_kotama_balakpus: 1,
-            kode_jabatan: row[indexheader[0]],
-            nama: row[indexheader[1]],
-            pangkat: row[indexheader[2]],
-            korps: row[indexheader[3]],
-            nrp: row[indexheader[4]],
-            jabatan: row[indexheader[5]],
-            tmt_jabatan: formattedDate,
-            abit: row[indexheader[7]],
-            tingkat_jabatan: row[indexheader[8]],
-            dafukaj: row[indexheader[9]],
-            createdAt: new Date(),
-            updatedAt: new Date()
-          };
-        });
+    // Periksa indeks kolom untuk setiap kolom yang Anda butuhkan
+    const indexheader = colheaders.map(col => rows[0].indexOf(col));
 
-      await DataEmployee.bulkCreate(bulkInsertData);
-
-      await unlinkFile(file.path);
-      // Save log to database
-      await UserActivityLog.create({
-        email: req.user.email,
-        activity_date: new Date(),
-        activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
-        ip_address: req.ip
+    const bulkInsertData = rows
+      .filter((row, index) => index !== 0 && row[indexheader[5]] !== null) // Pastikan untuk memfilter header
+      .map(row => {
+        let formattedDate = null;
+        if (row[indexheader[6]] != null && row[indexheader[6]] !== '') {
+          const dateObject = new Date(row[indexheader[6]]);
+          formattedDate = dateObject.toLocaleDateString(); // Perhatikan bahwa format tanggal ini cocok dengan database Anda
+        }
+        return {
+          kotama_balakpus: 'KODAM I BB',
+          code_kotama_balakpus: 1,
+          kode_jabatan: row[indexheader[0]],
+          nama: row[indexheader[1]],
+          pangkat: row[indexheader[2]],
+          korps: row[indexheader[3]],
+          nrp: row[indexheader[4]],
+          jabatan: row[indexheader[5]],
+          tmt_jabatan: formattedDate,
+          abit: row[indexheader[7]],
+          tingkat_jabatan: row[indexheader[8]],
+          dafukaj: row[indexheader[9]],
+          create_date: new Date(),
+          updated_date: new Date()
+        };
       });
 
-      res.status(200).send({
-        message: 'Uploaded the file successfully: ' + req.file.originalname,
-        fileKey: file.filename,
-      });
+    await DataEmployee.bulkCreate(bulkInsertData, {
+      individualHooks: true,
+    });
+
+    // Save log to database
+    await UserActivityLog.create({
+      email: req.user.email,
+      activity_date: new Date(),
+      activity: 'Upload File excel Data Personel Kotama/Balakpus ' + 'KODAM I BB',
+      ip_address: req.ip
+    });
+
+    res.status(200).send({
+      message: 'Uploaded the file successfully: ' + req.file.originalname,
+      fileKey: file.filename,
     });
   } catch (error) {
     console.log(error);
