@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       code_kotama_balakpus: DataTypes.INTEGER,
       kotama_balakpus: DataTypes.STRING,
       kode_jabatan: DataTypes.STRING,
+      satuan: DataTypes.STRING,
       nama: DataTypes.STRING,
       pangkat: DataTypes.STRING,
       korps: DataTypes.STRING,
@@ -26,7 +27,8 @@ module.exports = (sequelize, DataTypes) => {
       abit: DataTypes.STRING,
       tingkat_jabatan: DataTypes.STRING,
       dafukaj: DataTypes.STRING,
-      masa_jabatan: DataTypes.INTEGER
+      masa_jabatan: DataTypes.INTEGER,
+      tgl_lahir: DataTypes.DATE,
     },
     {
       sequelize,

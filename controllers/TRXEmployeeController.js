@@ -899,6 +899,7 @@ exports.uploadfileexcelByKotama = async (req, res) => {
       const bulkInsertData = [];
       for (let row of rows) {
         let formattedDate = null;
+        let formattedDate1 = null;
         if (row[6] != null && row[6] !== '') {
           const dateObject = new Date(row[6]);
           if (!isNaN(dateObject)) {
@@ -909,18 +910,28 @@ exports.uploadfileexcelByKotama = async (req, res) => {
             // Di sini saya akan menetapkan tanggal yang tidak valid ke null
           }
         }
+        if (row[8] != null && row[8] !== '') {
+          const dateObject1 = new Date(row[8]);
+          if (!isNaN(dateObject1)) {
+            formattedDate1 = dateObject1.toLocaleDateString();
+          } else {
+            console.error('Invalid date:', row[8]); // Tampilkan tanggal yang tidak valid
+            // Lakukan penanganan untuk tanggal tidak valid, misalnya lewati atau atur ke null
+            // Di sini saya akan menetapkan tanggal yang tidak valid ke null
+          }
+        }
         bulkInsertData.push({
           kotama_balakpus: namakotama,
           code_kotama_balakpus: codekotama,
-          kode_jabatan: row[0],
-          nama: row[1],
-          pangkat: row[2],
-          korps: row[3],
-          nrp: row[4],
-          jabatan: row[5],
+          satuan: row[0],
+          jabatan: row[1],
+          nama: row[2],
+          pangkat: row[3],
+          korps: row[4],
+          nrp: row[5],
           tmt_jabatan: formattedDate,
           abit: row[7],
-          tingkat_jabatan: row[8],
+          tgl_lahir: formattedDate1,
           dafukaj: row[9]
         });
       }
