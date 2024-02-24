@@ -35,8 +35,8 @@ const docFilter = (req, file, cb) => {
 
 var storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null,path.join(__dirname,'../../tmp'));
-    // cb(null,path.join('/tmp'));
+    // cb(null,path.join(__dirname,'../../tmp'));
+    cb(null,path.join('/tmp'));
   },
   filename: (req, file, cb) => {
     console.log(file.originalname);
