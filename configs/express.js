@@ -47,7 +47,7 @@ app.use(function(req, res, next) {
     res.status(200).json({
       status_code: 200,
       success: false,
-      message: 'berhasil masuk',
+      message: 'BERHASIL MASUK v24.03.2025',
     });
   });
 
