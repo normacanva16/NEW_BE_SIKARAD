@@ -9,7 +9,7 @@ async function init() {
   service.start({ port });
 
   sequelize.authenticate().then(() => {
-    console.log('Connect to Database Online with new database');
+    console.log('Connect to Database Online with new database Part II');
   });
 }
 
