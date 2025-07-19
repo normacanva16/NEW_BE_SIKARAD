@@ -1,8 +1,8 @@
 require('dotenv').config();
 
 module.exports = {
-    username: 'postgres.etsnykktdiyhqarpaami', 
-    password: 'k4aNEOTGv4MHd8Q0',
+    username: 'postgres.uezjoydeinlqcmquuwku', 
+    password: '_9_v8e5PUEK6AQX',
     database: 'postgres',
     host: 'aws-0-ap-southeast-1.pooler.supabase.com',
     dialect: 'postgres',
